@@ -1,0 +1,15 @@
+out/test/**
+src/**
+.vscode/**
+.vscode-test/**
+.nyc_output/**
+coverage/**
+**/*.map
+.gitignore
+.github/**
+.eslintrc.js
+tsconfig.json
+pnpm-lock.yaml
+**/.DS_Store
+node_modules/**
+*.vsix
