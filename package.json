@@ -137,7 +137,6 @@
         {
           "id": "promptvault.treeView",
           "name": "PromptVault",
-          "when": "promptvault.enabled",
           "icon": "$(database)"
         }
       ]
