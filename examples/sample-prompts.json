@@ -1,0 +1,35 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "title": "React Component with TypeScript",
+    "content": "Create a functional React component that accepts props with TypeScript interfaces. Include proper error handling and accessibility features.",
+    "tags": ["react", "typescript", "component", "accessibility"],
+    "createdAt": "2025-09-20T10:30:00Z",
+    "updatedAt": "2025-09-20T10:30:00Z",
+    "source": "copilot",
+    "language": "typescript",
+    "context": "/src/components/Button.tsx"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "title": "SQL Query Optimization",
+    "content": "Optimize this SQL query for better performance by adding appropriate indexes and restructuring the WHERE clauses for a table with millions of records.",
+    "tags": ["sql", "database", "optimization", "performance"],
+    "createdAt": "2025-09-20T11:15:00Z",
+    "updatedAt": "2025-09-20T11:15:00Z",
+    "source": "editor",
+    "language": "sql",
+    "context": "/database/queries/user_analytics.sql"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "title": "Python Data Processing",
+    "content": "Write a Python function that processes a large CSV file in chunks, applies data transformations, and outputs clean data to a new file. Handle memory efficiently.",
+    "tags": ["python", "data-processing", "csv", "memory-optimization"],
+    "createdAt": "2025-09-20T12:00:00Z",
+    "updatedAt": "2025-09-20T12:00:00Z",
+    "source": "amazonq",
+    "language": "python",
+    "context": "/scripts/data_processor.py"
+  }
+]

@@ -1,0 +1,218 @@
+{
+  "name": "promptvault",
+  "displayName": "PromptVault",
+  "description": "Local prompt management and organization for AI interactions",
+  "version": "1.0.0",
+  "publisher": "promptvault",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/PromptVault.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/PromptVault/issues"
+  },
+  "homepage": "https://github.com/yourusername/PromptVault#readme",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "prompts",
+    "copilot",
+    "amazon-q",
+    "prompt-management"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "promptvault.savePrompt",
+        "title": "Save to PromptVault",
+        "category": "PromptVault"
+      },
+      {
+        "command": "promptvault.openPanel",
+        "title": "Open PromptVault",
+        "category": "PromptVault"
+      },
+      {
+        "command": "promptvault.refreshTree",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "promptvault.addPrompt",
+        "title": "Add Prompt",
+        "icon": "$(add)"
+      },
+      {
+        "command": "promptvault.editPrompt",
+        "title": "Edit Prompt",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "promptvault.deletePrompt",
+        "title": "Delete Prompt",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "promptvault.exportPrompts",
+        "title": "Export Prompts",
+        "icon": "$(export)"
+      },
+      {
+        "command": "promptvault.importPrompts",
+        "title": "Import Prompts",
+        "icon": "$(import)"
+      },
+      {
+        "command": "promptvault.searchPrompts",
+        "title": "Search Prompts",
+        "icon": "$(search)"
+      },
+      {
+        "command": "promptvault.copyPrompt",
+        "title": "Copy to Clipboard",
+        "icon": "$(copy)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "promptvault.savePrompt",
+          "when": "editorHasSelection",
+          "group": "promptvault@1"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "promptvault.addPrompt",
+          "when": "view == promptvault.treeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "promptvault.searchPrompts",
+          "when": "view == promptvault.treeView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "promptvault.refreshTree",
+          "when": "view == promptvault.treeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "promptvault.exportPrompts",
+          "when": "view == promptvault.treeView",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "promptvault.copyPrompt",
+          "when": "view == promptvault.treeView && viewItem == prompt",
+          "group": "inline@1"
+        },
+        {
+          "command": "promptvault.editPrompt",
+          "when": "view == promptvault.treeView && viewItem == prompt",
+          "group": "inline@2"
+        },
+        {
+          "command": "promptvault.deletePrompt",
+          "when": "view == promptvault.treeView && viewItem == prompt",
+          "group": "inline@3"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "promptvault.treeView",
+          "name": "PromptVault",
+          "when": "promptvault.enabled",
+          "icon": "$(database)"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "promptvault.savePrompt",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "promptvault.openPanel",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p"
+      }
+    ],
+    "configuration": {
+      "title": "PromptVault",
+      "properties": {
+        "promptvault.enableAI": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable AI-powered title and tag suggestions"
+        },
+        "promptvault.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key for AI suggestions"
+        },
+        "promptvault.defaultTags": {
+          "type": "array",
+          "default": [
+            "general"
+          ],
+          "description": "Default tags for new prompts"
+        },
+        "promptvault.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save prompts after editing"
+        },
+        "promptvault.maxPrompts": {
+          "type": "number",
+          "default": 1000,
+          "description": "Maximum number of prompts to store"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.2.0",
+    "eslint": "^8.28.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.8.2",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@types/uuid": "^8.3.4",
+    "openai": "^4.0.0",
+    "uuid": "^8.3.2"
+  }
+}

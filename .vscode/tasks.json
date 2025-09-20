@@ -1,0 +1,28 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "pnpm: compile",
+			"command": "pnpm",
+			"args": ["run", "compile"],
+			"group": "build",
+			"presentation": {
+				"panel": "shared"
+			},
+			"problemMatcher": "$tsc"
+		},
+		{
+			"type": "shell",
+			"label": "pnpm: watch",
+			"command": "pnpm",
+			"args": ["run", "watch"],
+			"group": "build",
+			"presentation": {
+				"panel": "shared"
+			},
+			"isBackground": true,
+			"problemMatcher": "$tsc-watch"
+		}
+	]
+}
