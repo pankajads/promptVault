@@ -1,18 +1,18 @@
 {
   "name": "promptvault",
   "displayName": "PromptVault",
-  "description": "Local prompt management and organization for AI interactions",
+  "description": "Your Personal Prompt Manager. PromptVault is a lightweight yet powerful VS Code extension that helps developers save, organize, and reuse their important prompts directly inside the editor.",
   "version": "1.0.0",
-  "publisher": "promptvault",
+  "publisher": "pankajads",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/PromptVault.git"
+    "url": "https://github.com/pankajads/promptVault.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/PromptVault/issues"
+    "url": "https://github.com/pankajads/promptVault/issues"
   },
-  "homepage": "https://github.com/yourusername/PromptVault#readme",
+  "homepage": "https://github.com/pankajads/promptVault#readme",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -195,7 +195,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -205,6 +207,7 @@
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "@vscode/test-electron": "^2.2.0",
+    "@vscode/vsce": "^3.6.0",
     "eslint": "^8.28.0",
     "glob": "^8.1.0",
     "mocha": "^10.8.2",
