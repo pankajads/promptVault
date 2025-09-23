@@ -44,6 +44,313 @@ export class PromptWebviewProvider implements vscode.WebviewViewProvider {
         });
     }
 
+    public getAddFormContent(webview: vscode.Webview, editData?: any): string {
+        const isEditing = !!editData;
+        const title = editData?.title || '';
+        const content = editData?.content || '';
+        const tags = editData?.tags ? editData.tags.join(', ') : '';
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${isEditing ? 'Edit' : 'Add'} Prompt</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--vscode-foreground);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--vscode-foreground);
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: var(--vscode-font-family);
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--vscode-focusBorder);
+        }
+        
+        .content-input {
+            min-height: 150px;
+            padding: 12px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: var(--vscode-editor-font-family);
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .content-input:focus {
+            border-color: var(--vscode-focusBorder);
+        }
+        
+        .content-input:empty:before {
+            content: "Enter your prompt content here...\\APress Enter normally for new lines, click Save button when done";
+            color: var(--vscode-input-placeholderForeground);
+            white-space: pre;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: var(--vscode-font-family);
+        }
+        
+        .btn-primary {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        
+        .btn-secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        
+        .btn-ai {
+            background-color: var(--vscode-debugIcon-breakpointForeground);
+            color: var(--vscode-button-foreground);
+            position: relative;
+        }
+        
+        .btn-ai:hover {
+            opacity: 0.8;
+        }
+        
+        .btn-ai:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .ai-loading {
+            display: none;
+            margin-left: 8px;
+            font-size: 12px;
+        }
+        
+        .ai-loading.show {
+            display: inline;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1 class="form-title">${isEditing ? 'Edit' : 'Add New'} Prompt</h1>
+        
+        <form id="promptForm">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="title" name="title" value="${title}" required style="flex: 1;">
+                    <button type="button" id="aiSuggestBtn" class="btn btn-ai" onclick="getAISuggestions()">
+                        ✨ AI Suggest
+                        <span id="aiLoading" class="ai-loading">...</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input type="text" id="tags" name="tags" value="${tags}" placeholder="e.g., development, react, debugging">
+                <div class="help-text">Separate multiple tags with commas</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">Content</label>
+                <div id="content" class="content-input" contenteditable="true">${content}</div>
+                <div class="help-text">Type normally, press Enter for new lines. Click Save button when finished.</div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">${isEditing ? 'Update' : 'Save'} Prompt</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentDiv = document.getElementById('content');
+            const titleInput = document.getElementById('title');
+            
+            // Focus on title if empty, otherwise focus on content
+            if (!titleInput.value.trim()) {
+                titleInput.focus();
+            } else {
+                contentDiv.focus();
+                // Place cursor at end
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(contentDiv);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        });
+        
+        // Form submission
+        document.getElementById('promptForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            savePrompt();
+        });
+        
+        function savePrompt() {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').textContent.trim();
+            const tagsInput = document.getElementById('tags').value.trim();
+            
+            if (!title) {
+                alert('Please enter a title');
+                return;
+            }
+            
+            if (!content) {
+                alert('Please enter content');
+                return;
+            }
+            
+            const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            
+            vscode.postMessage({
+                type: '${isEditing ? 'updatePrompt' : 'savePrompt'}',
+                title: title,
+                content: content,
+                tags: tags${isEditing ? `,
+                id: '${editData?.id || ''}'` : ''}
+            });
+        }
+        
+        function cancelForm() {
+            vscode.postMessage({
+                type: 'cancel'
+            });
+        }
+        
+        function getAISuggestions() {
+            const content = document.getElementById('content').textContent.trim();
+            
+            if (!content) {
+                alert('Please enter some content first');
+                return;
+            }
+            
+            const btn = document.getElementById('aiSuggestBtn');
+            const loading = document.getElementById('aiLoading');
+            
+            // Show loading state
+            btn.disabled = true;
+            loading.classList.add('show');
+            
+            vscode.postMessage({
+                type: 'getAISuggestions',
+                content: content,
+                language: 'general'
+            });
+        }
+        
+        // Listen for AI suggestions response
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            if (message.type === 'aiSuggestions') {
+                const btn = document.getElementById('aiSuggestBtn');
+                const loading = document.getElementById('aiLoading');
+                
+                // Hide loading state
+                btn.disabled = false;
+                loading.classList.remove('show');
+                
+                if (message.suggestions) {
+                    const titleInput = document.getElementById('title');
+                    const tagsInput = document.getElementById('tags');
+                    
+                    // Only update if fields are empty or user confirms
+                    if (!titleInput.value || confirm('Replace current title with AI suggestion?')) {
+                        titleInput.value = message.suggestions.title;
+                    }
+                    
+                    if (!tagsInput.value || confirm('Replace current tags with AI suggestions?')) {
+                        tagsInput.value = message.suggestions.tags.join(', ');
+                    }
+                } else {
+                    alert('AI suggestions are not available.\\n\\nTo enable AI suggestions:\\n1. Open VS Code Settings\\n2. Search for "PromptVault"\\n3. Enable "Enable AI"\\n4. Choose your AI provider\\n5. Add your API key');
+                }
+            }
+        });
+    </script>
+</body>
+</html>`;
+    }
+
     public getWebviewContent(webview: vscode.Webview): string {
         return `<!DOCTYPE html>
 <html lang="en">

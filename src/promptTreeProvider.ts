@@ -33,6 +33,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
             const prompts = await this.promptManager.getAllPrompts();
             const tags = await this.promptManager.getAllTags();
             const items: PromptTreeItem[] = [];
+            const timestamp = Date.now();
 
             // Add tag groups
             for (const tag of tags) {
@@ -42,7 +43,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
                         `${tag} (${tagPrompts.length})`,
                         vscode.TreeItemCollapsibleState.Collapsed,
                         'tag',
-                        `tag-${tag}`, // Unique ID for tag
+                        `${timestamp}-tag-${tag}`, // Unique ID for tag with timestamp
                         undefined, // No prompt ID for tags
                         undefined // No command for tag items
                     ));
@@ -59,7 +60,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
                     `General (${ungroupedPrompts.length})`,
                     vscode.TreeItemCollapsibleState.Collapsed,
                     'tag',
-                    'tag-general', // Unique ID for general tag
+                    `${timestamp}-tag-general`, // Unique ID for general tag with timestamp
                     undefined, // No prompt ID for tags
                     undefined // No command for tag items
                 ));
@@ -76,6 +77,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
         try {
             const tag = tagLabel.split(' (')[0]; // Remove count from label
             let prompts: Prompt[];
+            const timestamp = Date.now();
 
             if (tag === 'General') {
                 const allPrompts = await this.promptManager.getAllPrompts();
@@ -90,7 +92,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
                 prompt.title,
                 vscode.TreeItemCollapsibleState.None,
                 'prompt',
-                `${tag}-${prompt.id}-${index}`, // Unique tree item ID
+                `${timestamp}-${tag}-${prompt.id}-${index}`, // Unique tree item ID with timestamp
                 prompt.id, // Store actual prompt ID separately
                 {
                     command: 'promptvault.openPrompt',

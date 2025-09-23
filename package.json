@@ -1,8 +1,8 @@
 {
   "name": "promptvault",
   "displayName": "PromptVault Manager",
-  "description": "A VS Code extension for managing and organizing text prompts locally",
-  "version": "1.0.1",
+  "description": "Personal Prompt Manager for managing and organizing prompts locally with AI-powered suggestions",
+  "version": "1.1.2",
   "publisher": "pankajads",
   "license": "MIT",
   "repository": {
@@ -28,6 +28,18 @@
     "developer-tools"
   ],
   "activationEvents": [
+    "onView:promptvault.treeView",
+    "onCommand:promptvault.savePrompt",
+    "onCommand:promptvault.openPanel",
+    "onCommand:promptvault.addPrompt",
+    "onCommand:promptvault.refreshTree",
+    "onCommand:promptvault.editPrompt",
+    "onCommand:promptvault.deletePrompt",
+    "onCommand:promptvault.copyPrompt",
+    "onCommand:promptvault.exportPrompts",
+    "onCommand:promptvault.importPrompts",
+    "onCommand:promptvault.searchPrompts",
+    "onCommand:promptvault.showDiagnostics",
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
@@ -46,11 +58,13 @@
       {
         "command": "promptvault.refreshTree",
         "title": "Refresh",
+        "category": "PromptVault",
         "icon": "$(refresh)"
       },
       {
         "command": "promptvault.addPrompt",
         "title": "Add Prompt",
+        "category": "PromptVault",
         "icon": "$(add)"
       },
       {
@@ -82,6 +96,11 @@
         "command": "promptvault.copyPrompt",
         "title": "Copy to Clipboard",
         "icon": "$(copy)"
+      },
+      {
+        "command": "promptvault.showDiagnostics",
+        "title": "Show Diagnostics",
+        "category": "PromptVault"
       }
     ],
     "menus": {
@@ -154,49 +173,137 @@
         "mac": "cmd+shift+p"
       }
     ],
-    "configuration": {
-      "title": "PromptVault",
-      "properties": {
-        "promptvault.enableAI": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable AI-powered title and tag suggestions"
-        },
-        "promptvault.openaiApiKey": {
-          "type": "string",
-          "default": "",
-          "description": "OpenAI API key for AI suggestions"
-        },
-        "promptvault.defaultTags": {
-          "type": "array",
-          "default": [
-            "general"
-          ],
-          "description": "Default tags for new prompts"
-        },
-        "promptvault.autoSave": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically save prompts after editing"
-        },
-        "promptvault.maxPrompts": {
-          "type": "number",
-          "default": 1000,
-          "description": "Maximum number of prompts to store"
+    "configuration": [
+      {
+        "title": "AI Integration",
+        "properties": {
+          "promptvault.enableAI": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "**Enable AI-powered suggestions** for titles and tags when creating prompts. Choose your preferred AI provider below when enabled."
+          },
+          "promptvault.aiProvider": {
+            "type": "string",
+            "enum": [
+              "openai",
+              "anthropic",
+              "bedrock",
+              "custom"
+            ],
+            "enumDescriptions": [
+              "OpenAI (ChatGPT, GPT-4) - Most popular option",
+              "Anthropic (Claude) - High-quality reasoning",
+              "AWS Bedrock - Enterprise foundation models",
+              "Custom API - Local LLMs, Ollama, or other OpenAI-compatible endpoints"
+            ],
+            "default": "openai",
+            "markdownDescription": "**Choose your AI provider** for generating suggestions. Each provider has different strengths and pricing.",
+            "when": "config.promptvault.enableAI == true"
+          },
+          "promptvault.openaiApiKey": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**OpenAI API Key** - Get your key from [OpenAI Platform](https://platform.openai.com/api-keys). Required for ChatGPT/GPT-4 suggestions.",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'openai'"
+          },
+          "promptvault.anthropicApiKey": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**Anthropic API Key** - Get your key from [Anthropic Console](https://console.anthropic.com/). Required for Claude AI suggestions.",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'anthropic'"
+          },
+          "promptvault.awsRegion": {
+            "type": "string",
+            "default": "us-east-1",
+            "markdownDescription": "**AWS Region** for Bedrock services. Choose the region closest to you for better performance.",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'bedrock'"
+          },
+          "promptvault.awsAccessKey": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**AWS Access Key** for Bedrock. Ensure your IAM user has Bedrock permissions.",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'bedrock'"
+          },
+          "promptvault.customAiEndpoint": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**Custom API Endpoint** - URL for your OpenAI-compatible API (e.g., `http://localhost:1234/v1` for Ollama)",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'custom'"
+          },
+          "promptvault.customAiApiKey": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**API Key for Custom Provider** - Leave empty if your local API doesn't require authentication.",
+            "when": "config.promptvault.enableAI == true && config.promptvault.aiProvider == 'custom'"
+          },
+          "promptvault.aiModel": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "**AI Model Override** (Optional) - Specify a custom model name. Leave empty to use provider defaults:\n- OpenAI: `gpt-3.5-turbo`, `gpt-4`\n- Anthropic: `claude-3-haiku-20240307`\n- Custom: Depends on your provider",
+            "when": "config.promptvault.enableAI == true"
+          }
+        }
+      },
+      {
+        "title": "Storage & Behavior",
+        "properties": {
+          "promptvault.defaultTags": {
+            "type": "array",
+            "default": [
+              "general"
+            ],
+            "description": "Default tags for new prompts"
+          },
+          "promptvault.autoSave": {
+            "type": "boolean",
+            "default": true,
+            "description": "Automatically save prompts after editing"
+          },
+          "promptvault.maxPrompts": {
+            "type": "number",
+            "default": 1000,
+            "description": "Maximum number of prompts to store"
+          },
+          "promptvault.storagePath": {
+            "type": "string",
+            "default": "",
+            "description": "Custom storage path for prompts (leave empty for default behavior)"
+          },
+          "promptvault.storageMode": {
+            "type": "string",
+            "enum": [
+              "workspace",
+              "global",
+              "custom"
+            ],
+            "default": "workspace",
+            "description": "Storage mode: 'workspace' (in .promptvault folder), 'global' (VS Code global storage), or 'custom' (specify path)"
+          },
+          "promptvault.useEditorFont": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use VS Code editor font settings in PromptVault webviews"
+          },
+          "promptvault.fontSizeMultiplier": {
+            "type": "number",
+            "default": 1.0,
+            "minimum": 0.5,
+            "maximum": 2.0,
+            "description": "Font size multiplier for PromptVault (relative to editor font size)"
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run compile && pnpm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "package": "vsce package",
-    "publish": "vsce publish"
-  },
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src/**/*.ts",
+		"test": "npm run compile && node ./out/test/runTest.js",
+		"package": "npm run compile && vsce package"
+	},
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.10",

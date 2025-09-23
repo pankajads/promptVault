@@ -1,236 +1,214 @@
 # PromptVault - VS Code Extension
 
-A VS Code extension for locally managing and organizing AI prompts with intelligent tagging and categorization.
+Personal Prompt Manager for locally managing and organizing AI prompts with intelligent tagging, categorization, and comprehensive multi-LLM AI integration.
 
-> **🎉 Status**: Fully implemented and ready to use! The extension provides a complete solution for saving, organizing, and reusing AI prompts within VS Code.
+> **🎉 Version 1.1.2**: Major AI enhancement release! Now features multi-provider AI support (OpenAI, Anthropic, AWS Bedrock, Custom), progressive settings UX, and all critical form issues fixed. Ready for production use with your favorite LLM!
 
-## ✅ What's Built
+## ✨ What's New in 1.1.2
 
-### Core Features ✅
+### 🤖 **Multi-Provider AI Integration**
+- **OpenAI (ChatGPT)**: GPT-3.5, GPT-4 support
+- **Anthropic (Claude)**: Claude-3 models integration  
+- **AWS Bedrock**: Enterprise foundation models
+- **Custom APIs**: Local LLMs, Ollama, OpenAI-compatible endpoints
+- **Smart Suggestions**: AI analyzes content and suggests titles/tags
+- **Progressive Settings**: Clean UX that only shows relevant options
+
+### 🔧 **Critical Fixes (All Previously Reported Issues)**
+- ✅ **Save Button Fixed**: Add New Prompt save button works correctly
+- ✅ **Content Input Enhanced**: Natural text entry (no more Shift+Enter restriction)
+- ✅ **Edit Form Fixed**: Edit prompts now pre-populate correctly
+- ✅ **Windows Compatible**: 100% confirmed cross-platform support
+
+### 🎨 **Enhanced User Experience**
+- **✨ AI Suggest Button**: One-click intelligent suggestions in forms
+- **Progressive Disclosure**: AI settings appear only when enabled (OFF by default)
+- **Rich Descriptions**: Settings include helpful links and examples
+- **Better Error Messages**: Clear guidance and troubleshooting info
+
+## 🚀 How to Use PromptVault
+
+### 📍 **Finding PromptVault in VS Code**
+After installation, PromptVault appears in your **Explorer panel** (left sidebar):
+1. Look for the **"PROMPTVAULT"** section in Explorer (below your file tree)
+2. If not visible, go to **View → Explorer** or press `Ctrl+Shift+E` (`Cmd+Shift+E` on Mac)
+3. The PromptVault tree view will show all your saved prompts organized by tags
+
+### 🎯 **3 Ways to Add Prompts**
+
+#### Method 1: From Selected Text (Most Common)
+1. **Select any text** in any VS Code file
+2. **Right-click** → Choose **"Save to PromptVault"**
+3. **Fill the form**: Title, tags, and content (pre-filled)
+4. **Optional**: Click **"✨ AI Suggest"** for smart title/tag suggestions
+5. **Click "Save Prompt"**
+
+#### Method 2: From Tree View 
+1. **Click the "+" button** in the PROMPTVAULT section header
+2. **Enter content** in the form
+3. **Optional**: Use **"✨ AI Suggest"** for intelligent suggestions
+4. **Fill title and tags**, then **Save**
+
+#### Method 3: Quick Keyboard Shortcut
+1. **Select text** in any file
+2. **Press `Ctrl+Shift+S`** (`Cmd+Shift+S` on Mac)
+3. **Form opens** with selected text pre-filled
+4. **Add title/tags** and save
+
+### 🔍 **Managing Your Prompts**
+
+#### In the Tree View:
+- **📁 Browse by tags**: Prompts are organized under tag folders
+- **👀 Preview**: Click any prompt to view details in a panel
+- **✏️ Edit**: Right-click prompt → "Edit" or click edit icon
+- **📋 Copy**: Right-click prompt → "Copy to Clipboard"
+- **🗑️ Delete**: Right-click prompt → "Delete"
+- **🔍 Search**: Use the search icon in tree view header
+
+#### Tree View Actions:
+- **➕ Add New**: Click "+" button in header
+- **🔄 Refresh**: Click refresh icon to reload
+- **📤 Export**: Right-click in tree view → "Export Prompts"
+- **📥 Import**: Right-click in tree view → "Import Prompts"
+
+### 🤖 **Using AI Features (Optional)**
+
+#### Enable AI:
+1. **Open Settings**: `Ctrl+,` (`Cmd+,` on Mac)
+2. **Search "PromptVault"**
+3. **Toggle "Enable AI"** to ON
+4. **Choose provider**: OpenAI, Anthropic, AWS Bedrock, or Custom
+5. **Add API key** for your chosen provider
+
+#### In Forms:
+- **Click "✨ AI Suggest"** after entering content
+- **AI analyzes** your text and suggests titles/tags
+- **Accept or modify** suggestions as needed
+- **Save** your prompt with AI-enhanced metadata
+
+## ✅ Core Features
+
+### Prompt Management ✅
+- ✅ **Complete UI Interface**: No command dialogs - all operations in webview panels
+- ✅ **Add/Edit Forms**: Rich interface with optional AI-powered suggestions
+- ✅ **Detail Views**: Full prompt display with metadata and quick actions
 - ✅ **Text Selection & Save**: Right-click any selected text to save as prompt
-- ✅ **Tree View Organization**: Hierarchical display of prompts grouped by tags
-- ✅ **Local File Storage**: JSON-based storage in `.promptvault/` directory
-- ✅ **Search & Filter**: Find prompts by title, content, or tags
+- ✅ **Tree View Organization**: Hierarchical display grouped by tags
+- ✅ **Real-time Search**: Instant filtering with search-as-you-type
 - ✅ **Import/Export**: Backup and share prompt collections
 - ✅ **Keyboard Shortcuts**: `Ctrl+Shift+S` (Mac: `Cmd+Shift+S`) to save prompts
 
 ### AI Integration ✅
-- ✅ **Smart Suggestions**: Optional OpenAI integration for title/tag generation
+- ✅ **Smart Suggestions**: Multi-provider AI integration for title/tag generation
+- ✅ **Provider Support**: OpenAI (ChatGPT), Anthropic (Claude), AWS Bedrock, Custom APIs
 - ✅ **Context Awareness**: Analyzes code language and content for better suggestions
+- ✅ **Flexible Configuration**: Choose your preferred AI provider and model
 - ✅ **Fallback Mode**: Works perfectly without AI (manual input)
 
-### User Experience ✅
-- ✅ **Native VS Code Integration**: Context menus, tree views, webview panels
-- ✅ **Cross-Window Support**: Works with any editor window (Copilot, Amazon Q, regular files)
-- ✅ **Real-time Updates**: Tree view refreshes automatically
-- ✅ **Rich Prompt Display**: Syntax highlighting and metadata
+### Storage & Organization ✅
+- ✅ **Local File Storage**: JSON-based storage in `.promptvault/` directory
+- ✅ **Multiple Storage Modes**: Workspace, global, or custom path options
+- ✅ **Cross-Platform**: Works on Windows, macOS, and Linux
+- ✅ **Font Synchronization**: Automatic matching with VS Code editor fonts
+- ✅ **Tag-Based System**: Organize prompts with flexible tagging
 
-### Technical Implementation ✅
-- ✅ **TypeScript**: Fully typed codebase
-- ✅ **VS Code Extension API**: Native integration
-- ✅ **Modular Architecture**: Separate managers for storage, AI, UI
-- ✅ **Error Handling**: Graceful fallbacks and user feedback
-- ✅ **Configuration**: Settings panel for customization
-- ✅ **Test Suite**: Comprehensive unit tests with Mocha framework
+## 🚀 Quick Start
 
-## 📋 Feasibility Report
+### 1. **Install & Locate**
+- Install from VS Code Marketplace
+- Find **"PROMPTVAULT"** in Explorer panel (left sidebar)
 
-### ✅ Highly Feasible Features
-- **Local File Storage**: Simple filesystem-based storage using JSON/text files
-- **VS Code Integration**: Full access to VS Code APIs for UI, commands, and context menus
-- **Text Selection & Context Menu**: Native VS Code support for selection-based actions
-- **Tree View Provider**: Built-in VS Code UI component for hierarchical data display
-- **Keyboard Shortcuts**: VS Code command palette and key binding support
-- **AI Integration**: Can integrate with OpenAI, Anthropic, or local models for title/tag suggestions
+### 2. **Save Your First Prompt**
+- Select any text → Right-click → "Save to PromptVault"
+- Or use keyboard shortcut: `Ctrl+Shift+S` (`Cmd+Shift+S` on Mac)
 
-### ⚠️ Moderate Complexity Features
-- **Cross-Window Integration**: Limited direct integration with Copilot/Amazon Q windows
-  - **Alternative**: Use text selection from any editor window + context menu
-  - **Workaround**: Monitor active editor content and provide prompt suggestions
-- **Real-time AI Processing**: Requires API keys and internet connectivity
-  - **Solution**: Make AI features optional with manual fallback
+### 3. **Manage in Tree View**
+- Browse prompts by tags in Explorer panel
+- Click prompts to view, right-click to edit/copy/delete
 
-### 🎯 Recommended Architecture
-- **Backend**: Simple JSON file storage in user's workspace or global extension storage
-- **Frontend**: VS Code Tree View + Custom Webview panels
-- **AI Integration**: Optional OpenAI/Anthropic API for smart suggestions
-- **Scalability Path**: Easy migration to database when needed
+### 4. **Optional: Enable AI** 
+- Settings → PromptVault → Enable AI → Choose provider → Add API key
 
-## 🔄 Data Flow Diagram
+## 🔧 Configuration Options
 
-```mermaid
-graph TB
-    A[User Selects Text] --> B[Right Click / Ctrl+Shift+P]
-    B --> C[PromptVault: Save Prompt Command]
-    C --> D[Extract Selected Text]
-    D --> E{AI Enabled?}
-    
-    E -->|Yes| F[Send to AI for Title/Tags]
-    E -->|No| G[Show Manual Input Dialog]
-    F --> H[AI Returns Suggestions]
-    H --> I[Show Prompt Dialog with Suggestions]
-    G --> I
-    
-    I --> J[User Reviews/Edits]
-    J --> K{User Confirms?}
-    K -->|Yes| L[Save to JSON File]
-    K -->|No| M[Cancel]
-    
-    L --> N[Update Tree View]
-    N --> O[Show Success Message]
-    
-    P[Tree View Click] --> Q[Load Prompt Content]
-    Q --> R[Show in Webview Panel]
-    
-    S[Search/Filter] --> T[Filter Tree by Tags/Title]
-    
-    U[Export/Import] --> V[JSON File Operations]
-    
-    style A fill:#e1f5fe
-    style L fill:#e8f5e8
-    style R fill:#fff3e0
-```
+### AI Integration (New in 1.1.2)
+- **Enable AI**: Toggle AI-powered suggestions on/off
+- **AI Provider**: Choose from OpenAI, Anthropic, AWS Bedrock, or Custom API
+- **API Keys**: Configure keys for your chosen provider(s)
+  - `promptvault.openaiApiKey` - OpenAI API key
+  - `promptvault.anthropicApiKey` - Anthropic API key  
+  - `promptvault.awsAccessKey` - AWS access key for Bedrock
+  - `promptvault.customAiApiKey` - Custom provider API key
+- **AI Models**: Specify preferred models (optional, uses provider defaults)
+- **Custom Endpoints**: Configure custom OpenAI-compatible APIs
 
-## 📊 Data Structure
+### Storage & Behavior
+- **Storage Location**: Choose workspace, global, or custom path
+- **Default Tags**: Set default tags for new prompts
+- **Auto-save**: Enable/disable automatic saving
+- **Font Settings**: Match VS Code editor fonts
 
-### Prompt Object
+### Advanced Options
+- **Max Prompts**: Limit total stored prompts
+- **Export Format**: JSON structure preferences
+- **AWS Region**: For Bedrock integration
+
+## 🎯 AI Provider Examples
+
+### OpenAI (ChatGPT)
 ```json
 {
-  "id": "uuid-v4",
-  "title": "Generated Title or User Input",
-  "content": "Selected prompt text",
-  "tags": ["ai", "coding", "documentation"],
-  "createdAt": "2025-09-20T10:30:00Z",
-  "updatedAt": "2025-09-20T10:30:00Z",
-  "source": "copilot|amazonq|editor",
-  "language": "typescript",
-  "context": "file path or context info"
+  "promptvault.enableAI": true,
+  "promptvault.aiProvider": "openai",
+  "promptvault.openaiApiKey": "sk-...",
+  "promptvault.aiModel": "gpt-4"
 }
 ```
 
-### Storage Structure
-```
-.promptvault/
-├── prompts.json          # Main prompts database
-├── config.json           # Extension configuration
-└── exports/              # Export directory
-    └── backup-YYYY-MM-DD.json
-```
-
-## 🚀 Implementation Plan
-
-### Phase 1: Core Features (MVP)
-1. ✅ Basic extension scaffolding
-2. ✅ Text selection and context menu
-3. ✅ Simple prompt storage (JSON)
-4. ✅ Tree view for prompt management
-5. ✅ Basic CRUD operations
-
-### Phase 2: Enhanced Features
-1. 🔄 AI-powered title/tag suggestions
-2. 🔄 Advanced search and filtering
-3. 🔄 Import/Export functionality
-4. 🔄 Keyboard shortcuts
-5. 🔄 Settings panel
-
-### Phase 3: Advanced Features
-1. ⏳ Prompt templates
-2. ⏳ Collaboration features
-3. ⏳ Cloud sync options
-4. ⏳ Analytics and usage tracking
-
-## 🛠️ Technical Stack
-
-- **Language**: TypeScript
-- **Framework**: VS Code Extension API
-- **Storage**: Local JSON files
-- **UI**: VS Code Tree View + Webview API
-- **AI Integration**: OpenAI API (optional)
-- **Testing**: Mocha + VS Code Extension Test Runner
-
-## 📦 Dependencies
-
+### Anthropic (Claude)
 ```json
 {
-  "vscode": "^1.74.0",
-  "@types/uuid": "^8.3.4",
-  "uuid": "^8.3.2",
-  "openai": "^4.0.0" // Optional for AI features
+  "promptvault.enableAI": true,
+  "promptvault.aiProvider": "anthropic", 
+  "promptvault.anthropicApiKey": "sk-ant-...",
+  "promptvault.aiModel": "claude-3-sonnet-20240229"
 }
 ```
 
-## 🎮 User Experience Flow
-
-1. **Save Prompt**: Select text → Right-click → "Save to PromptVault" → Review AI suggestions → Save
-2. **Browse Prompts**: Open PromptVault panel → Browse tree structure → Click to view
-3. **Search**: Use search box to filter by title, tags, or content
-4. **Organize**: Drag-drop to reorder, edit tags, create categories
-5. **Export**: Backup prompts to JSON file for sharing/backup
-
-## � Quick Start Guide
-
-### 1. Installation
-Install the extension from the VS Code marketplace or load it in development mode.
-
-### 2. Basic Usage
-1. **Select any text** in any editor (including Copilot/Amazon Q windows)
-2. **Right-click** and choose "Save to PromptVault" or use `Ctrl+Shift+S` (Cmd+Shift+S on Mac)
-3. **Review the suggested title and tags** (AI-powered if enabled)
-4. **Save the prompt** - it will appear in the PromptVault tree view
-
-### 3. Managing Prompts
-- **View prompts**: Click on PromptVault in the Explorer panel
-- **Search**: Use the search box to find specific prompts
-- **Organize**: Prompts are automatically grouped by tags
-- **Edit**: Right-click on any prompt to edit or delete
-- **Export/Import**: Use the toolbar buttons to backup or share prompts
-
-### 4. AI Features (Optional)
-1. Get an OpenAI API key
-2. Go to VS Code Settings → Extensions → PromptVault
-3. Enable AI suggestions and enter your API key
-4. The extension will now suggest titles and tags automatically
-
-## �🔧 Configuration Options
-
-- Enable/disable AI suggestions
-- API key configuration
-- Storage location preference
-- Default tags
-- Auto-save settings
-- Export format preferences
+### Local LLM (Ollama)
+```json
+{
+  "promptvault.enableAI": true,
+  "promptvault.aiProvider": "custom",
+  "promptvault.customAiEndpoint": "http://localhost:11434/v1",
+  "promptvault.customAiApiKey": "",
+  "promptvault.aiModel": "llama2"
+}
+```
 
 ## 🧪 Testing
 
-The extension includes a comprehensive test suite covering all major functionality:
-
-### Test Structure
-- **Extension Tests**: Verify extension activation, command registration, and configuration
-- **PromptManager Tests**: Test CRUD operations, search, and data persistence
-- **AIService Tests**: Validate AI integration and error handling
+The extension includes comprehensive testing covering all major functionality:
 
 ### Running Tests
 ```bash
 # Run all tests
 pnpm run test
 
-# Run tests in watch mode during development
+# Run tests in watch mode
 pnpm run test:watch
 
-# Run specific test files
-pnpm run test -- --grep "PromptManager"
+# Compile only
+pnpm run compile
 ```
 
 ### Test Coverage
-- ✅ Extension activation and command registration
-- ✅ Prompt saving, updating, and deletion
+- ✅ Extension activation and command registration (22/23 tests passing)
+- ✅ Prompt CRUD operations and data persistence
+- ✅ AI service integration with multiple providers
 - ✅ Search and filtering functionality
-- ✅ Tag management and organization
+- ✅ Cross-platform compatibility
 - ✅ Error handling and edge cases
-- ✅ AI service integration
-- ✅ Configuration validation
-
-All tests pass successfully and ensure the extension works reliably across different scenarios.
 
 ## 🚀 Installation & Development
 
@@ -239,11 +217,11 @@ All tests pass successfully and ensure the extension works reliably across diffe
 - pnpm (recommended package manager)
 - VS Code 1.74.0+
 
-### Setup
+### Development Setup
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd PromptVault
+# Clone repository
+git clone https://github.com/pankajads/promptVault.git
+cd promptVault
 
 # Install dependencies
 pnpm install
@@ -251,94 +229,63 @@ pnpm install
 # Compile TypeScript
 pnpm run compile
 
-# Launch in development mode
-# Press F5 in VS Code or use the "Run Extension" debug configuration
+# Run tests
+pnpm run test
+
+# Package extension
+pnpm run package
 ```
 
-### Development Commands
-```bash
-pnpm run compile          # Compile TypeScript
-pnpm run watch           # Watch mode for development
-pnpm run lint            # Run ESLint
-pnpm run test            # Run tests
+## 📁 Project Structure
+
+```
+PromptVault/
+├── src/
+│   ├── extension.ts          # Main extension activation
+│   ├── promptManager.ts      # Data management
+│   ├── promptTreeProvider.ts # Tree view provider
+│   ├── promptWebviewProvider.ts # UI forms and panels
+│   ├── aiService.ts          # Multi-provider AI integration
+│   └── test/                 # Test suites
+├── package.json              # Extension configuration
+├── CHANGELOG.md              # Version history
+└── README.md                 # This file
 ```
 
-### Building for Production
-```bash
-pnpm run vscode:prepublish
-# Package with vsce
-vsce package
-```
+## 🔄 Migration from 1.0.2
 
-## 📦 Publishing to VS Code Marketplace
+**Zero-effort upgrade!** 
+- ✅ All existing prompts remain unchanged
+- ✅ All existing workflows continue to work
+- ✅ New AI features are completely optional
+- ✅ Previous settings are preserved
 
-### Prerequisites
-1. **Microsoft Account**: Create one at [https://dev.azure.com](https://dev.azure.com)
-2. **Publisher Account**: Register at [Visual Studio Marketplace](https://marketplace.visualstudio.com/manage)
-3. **Personal Access Token**: Generate one in Azure DevOps
+## 💡 Use Cases
 
-### Publishing Steps
+- **Developers**: Save code snippets, debugging prompts, documentation templates
+- **Writers**: Store article outlines, character descriptions, plot ideas
+- **Researchers**: Organize research prompts, data analysis templates
+- **AI Users**: Manage ChatGPT prompts, Claude conversations, custom instructions
+- **Teams**: Share and backup prompt libraries across projects
 
-#### 1. Install VSCE (VS Code Extension Manager)
-```bash
-npm install -g @vscode/vsce
-```
+## 🤝 Contributing
 
-#### 2. Create Publisher Account
-- Go to [Azure DevOps](https://dev.azure.com)
-- Create organization and generate Personal Access Token
-- Register publisher at [VS Code Marketplace](https://marketplace.visualstudio.com/manage)
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality  
+4. Ensure all tests pass
+5. Submit a pull request
 
-#### 3. Login to VSCE
-```bash
-vsce login <your-publisher-name>
-# Enter your Personal Access Token when prompted
-```
+## 📄 License
 
-#### 4. Update Package.json
-- Update `publisher` field to your registered publisher name
-- Ensure `version`, `description`, and `repository` are correct
-- Add `icon` file if you have one
+MIT License - see LICENSE file for details.
 
-#### 5. Package and Publish
-```bash
-# Package extension (creates .vsix file)
-vsce package
+## 🔗 Links
 
-# Publish to marketplace
-vsce publish
-
-# Or publish specific version
-vsce publish 1.0.1
-```
-
-#### 6. Alternative: Manual Upload
-- Package: `vsce package`
-- Upload `.vsix` file manually at [VS Code Marketplace](https://marketplace.visualstudio.com/manage)
-
-### Before Publishing Checklist
-- [ ] Test extension thoroughly
-- [ ] Update README with usage instructions
-- [ ] Add proper icon (128x128 PNG)
-- [ ] Set correct repository URL
-- [ ] Update CHANGELOG.md
-- [ ] Ensure proper licensing
-- [ ] Test in clean VS Code environment
-
-### Publishing Commands
-```bash
-# Package only
-vsce package
-
-# Publish new version
-vsce publish patch  # 1.0.0 -> 1.0.1
-vsce publish minor  # 1.0.0 -> 1.1.0  
-vsce publish major  # 1.0.0 -> 2.0.0
-
-# Publish specific version
-vsce publish 1.2.3
-```
+- **GitHub Repository**: [pankajads/promptVault](https://github.com/pankajads/promptVault)
+- **VS Code Marketplace**: Search "PromptVault Manager"
+- **Issues & Support**: [GitHub Issues](https://github.com/pankajads/promptVault/issues)
 
 ---
 
-*Ready to build! The extension will provide a seamless way to capture, organize, and reuse AI prompts locally within VS Code.*
+**Version 1.1.2** - The complete prompt management solution with multi-LLM AI integration! 🚀
