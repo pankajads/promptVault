@@ -293,7 +293,3 @@ MIT License - see LICENSE file for details.
 - **GitHub Repository**: [pankajads/promptVault](https://github.com/pankajads/promptVault)
 - **VS Code Marketplace**: Search "PromptVault Manager"
 - **Issues & Support**: [GitHub Issues](https://github.com/pankajads/promptVault/issues)
-
----
-
-**Version 1.1.2** - The complete prompt management solution with multi-LLM AI integration! 🚀
