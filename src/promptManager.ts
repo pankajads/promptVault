@@ -15,14 +15,8 @@ export interface Prompt {
     context: string;
 }
 
-export interface PromptInput {
-    title: string;
-    content: string;
-    tags: string[];
-    language: string;
-    source: string;
-    context: string;
-}
+// Create PromptInput by omitting system-generated fields from Prompt
+export type PromptInput = Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>;
 
 export class PromptManager {
     private storagePath: string;
@@ -77,21 +71,16 @@ export class PromptManager {
         this.log('Getting storage path...');
         
         const config = vscode.workspace.getConfiguration('promptvault');
-        const storageMode = config.get<string>('storageMode', 'workspace');
+        const storageMode = config.get<string>('storageMode', 'global');
         const customPath = config.get<string>('storagePath', '');
         
         this.log('Storage configuration:', { storageMode, customPath });
 
-        // Use workspace storage if available, otherwise use global storage
+        // Priority: custom > workspace > global (default)
         if (storageMode === 'custom' && customPath) {
             this.log('Using custom storage path');
             return customPath;
-        } else if (storageMode === 'global') {
-            this.log('Using global storage');
-            const globalStorage = this.context.globalStorageUri.fsPath;
-            return path.join(globalStorage, 'promptvault');
-        } else {
-            // Default to workspace storage
+        } else if (storageMode === 'workspace') {
             this.log('Attempting workspace storage...');
             if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
                 const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
@@ -102,6 +91,11 @@ export class PromptManager {
                 const globalStorage = this.context.globalStorageUri.fsPath;
                 return path.join(globalStorage, 'promptvault');
             }
+        } else {
+            // Default to global storage (VS Code extension profile folder)
+            this.log('Using global storage (VS Code extension profile)');
+            const globalStorage = this.context.globalStorageUri.fsPath;
+            return path.join(globalStorage, 'promptvault');
         }
     }
 

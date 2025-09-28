@@ -5,10 +5,18 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
     private _onDidChangeTreeData: vscode.EventEmitter<PromptTreeItem | undefined | null | void> = new vscode.EventEmitter<PromptTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<PromptTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
-    constructor(private promptManager: PromptManager) {}
+    constructor(private promptManager: PromptManager) {
+        console.log('PromptTreeProvider initialized');
+    }
 
     refresh(): void {
+        console.log('Refreshing tree view...');
         this._onDidChangeTreeData.fire();
+    }
+
+    dispose(): void {
+        this._onDidChangeTreeData.dispose();
+        console.log('PromptTreeProvider disposed');
     }
 
     getTreeItem(element: PromptTreeItem): vscode.TreeItem {
@@ -17,90 +25,84 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
 
     async getChildren(element?: PromptTreeItem): Promise<PromptTreeItem[]> {
         if (!element) {
-            // Root level - show tag groups and ungrouped prompts
-            return this.getRootItems();
+            return this.getTagGroups();
         } else if (element.contextValue === 'tag') {
-            // Tag group - show prompts with this tag
-            return this.getPromptsForTag(element.label as string);
-        } else {
-            // Prompt item - no children
-            return [];
+            return this.getPromptsForTag(element.tagName!);
         }
+        return [];
     }
 
-    private async getRootItems(): Promise<PromptTreeItem[]> {
+    private async getTagGroups(): Promise<PromptTreeItem[]> {
         try {
-            const prompts = await this.promptManager.getAllPrompts();
-            const tags = await this.promptManager.getAllTags();
-            const items: PromptTreeItem[] = [];
-            const timestamp = Date.now();
-
-            // Add tag groups
-            for (const tag of tags) {
-                const tagPrompts = await this.promptManager.getPromptsByTag(tag);
-                if (tagPrompts.length > 0) {
-                    items.push(new PromptTreeItem(
-                        `${tag} (${tagPrompts.length})`,
-                        vscode.TreeItemCollapsibleState.Collapsed,
-                        'tag',
-                        `${timestamp}-tag-${tag}`, // Unique ID for tag with timestamp
-                        undefined, // No prompt ID for tags
-                        undefined // No command for tag items
-                    ));
+            const allPrompts = await this.promptManager.getAllPrompts();
+            const tagGroups: PromptTreeItem[] = [];
+            const allTags = new Set<string>();
+            let hasUntagged = false;
+            
+            allPrompts.forEach(prompt => {
+                if (prompt.tags && prompt.tags.length > 0) {
+                    prompt.tags.forEach(tag => allTags.add(tag));
+                } else {
+                    hasUntagged = true;
                 }
-            }
+            });
 
-            // Add ungrouped prompts (if any)
-            const ungroupedPrompts = prompts.filter(prompt => 
-                prompt.tags.length === 0 || prompt.tags.every(tag => tag === 'general')
-            );
-
-            if (ungroupedPrompts.length > 0) {
-                items.push(new PromptTreeItem(
-                    `General (${ungroupedPrompts.length})`,
+            for (const tag of Array.from(allTags).sort()) {
+                const tagPrompts = allPrompts.filter(p => p.tags && p.tags.includes(tag));
+                tagGroups.push(new PromptTreeItem(
+                    `${tag} (${tagPrompts.length})`,
                     vscode.TreeItemCollapsibleState.Collapsed,
                     'tag',
-                    `${timestamp}-tag-general`, // Unique ID for general tag with timestamp
-                    undefined, // No prompt ID for tags
-                    undefined // No command for tag items
+                    tag
                 ));
             }
 
-            return items;
+            if (hasUntagged) {
+                const untaggedPrompts = allPrompts.filter(p => !p.tags || p.tags.length === 0);
+                tagGroups.push(new PromptTreeItem(
+                    `Untagged (${untaggedPrompts.length})`,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    'tag',
+                    'untagged'
+                ));
+            }
+
+            return tagGroups;
         } catch (error) {
+            console.error('Error getting tag groups:', error);
             vscode.window.showErrorMessage(`Failed to load prompts: ${error}`);
             return [];
         }
     }
 
-    private async getPromptsForTag(tagLabel: string): Promise<PromptTreeItem[]> {
+    private async getPromptsForTag(tagName: string): Promise<PromptTreeItem[]> {
         try {
-            const tag = tagLabel.split(' (')[0]; // Remove count from label
+            const allPrompts = await this.promptManager.getAllPrompts();
             let prompts: Prompt[];
-            const timestamp = Date.now();
 
-            if (tag === 'General') {
-                const allPrompts = await this.promptManager.getAllPrompts();
-                prompts = allPrompts.filter(prompt => 
-                    prompt.tags.length === 0 || prompt.tags.every(t => t === 'general')
-                );
+            if (tagName === 'untagged') {
+                // Handle the special case for truly untagged prompts
+                prompts = allPrompts.filter(p => !p.tags || p.tags.length === 0);
             } else {
-                prompts = await this.promptManager.getPromptsByTag(tag);
+                // Simply filter by the tag name - treat all tags equally
+                prompts = allPrompts.filter(p => p.tags && p.tags.includes(tagName));
             }
 
-            return prompts.map((prompt, index) => new PromptTreeItem(
-                prompt.title,
+            return prompts.map(prompt => new PromptTreeItem(
+                prompt.title, // Clean title without spaces
                 vscode.TreeItemCollapsibleState.None,
                 'prompt',
-                `${timestamp}-${tag}-${prompt.id}-${index}`, // Unique tree item ID with timestamp
-                prompt.id, // Store actual prompt ID separately
+                tagName, // Pass the parent tag name
+                prompt.id,
                 {
                     command: 'promptvault.openPrompt',
                     title: 'Open Prompt',
                     arguments: [prompt.id]
-                }
+                },
+                prompt
             ));
         } catch (error) {
+            console.error('Error getting prompts for tag:', error);
             vscode.window.showErrorMessage(`Failed to load prompts for tag: ${error}`);
             return [];
         }
@@ -112,19 +114,24 @@ export class PromptTreeItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly contextValue: string,
-        public readonly id?: string,
-        public readonly promptId?: string, // Actual prompt ID for commands
-        public readonly command?: vscode.Command
+        public readonly tagName?: string,
+        public readonly promptId?: string,
+        public readonly command?: vscode.Command,
+        public readonly promptData?: Prompt
     ) {
         super(label, collapsibleState);
-
-        this.tooltip = this.label;
-        this.contextValue = contextValue;
         
-        if (contextValue === 'prompt') {
-            this.iconPath = new vscode.ThemeIcon('file-text');
-        } else if (contextValue === 'tag') {
+        if (contextValue === 'tag') {
             this.iconPath = new vscode.ThemeIcon('tag');
+            this.id = `tag-${tagName}`;
+        } else if (contextValue === 'prompt') {
+            this.iconPath = new vscode.ThemeIcon('edit');
+            // Set resource URI with a meaningful scheme
+            this.resourceUri = vscode.Uri.parse(`promptvault-prompt:${promptId}`);
+            // Set the ID to help establish parent-child relationship
+            this.id = `prompt-${tagName}-${promptId}`;
+            // Use regular spaces for indentation - VS Code should handle this properly
+            this.label = `${label}`;
         }
     }
 }

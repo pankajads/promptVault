@@ -2,7 +2,7 @@
   "name": "promptvault",
   "displayName": "PromptVault Manager",
   "description": "Personal Prompt Manager for managing and organizing prompts locally with AI-powered suggestions",
-  "version": "1.1.2",
+  "version": "1.2.1",
   "publisher": "pankajads",
   "license": "MIT",
   "repository": {
@@ -63,18 +63,18 @@
       },
       {
         "command": "promptvault.addPrompt",
-        "title": "Add Prompt",
+        "title": "Add",
         "category": "PromptVault",
         "icon": "$(add)"
       },
       {
         "command": "promptvault.editPrompt",
-        "title": "Edit Prompt",
+        "title": "Edit",
         "icon": "$(edit)"
       },
       {
         "command": "promptvault.deletePrompt",
-        "title": "Delete Prompt",
+        "title": "Delete",
         "icon": "$(trash)"
       },
       {
@@ -89,7 +89,7 @@
       },
       {
         "command": "promptvault.searchPrompts",
-        "title": "Search Prompts",
+        "title": "Search",
         "icon": "$(search)"
       },
       {
@@ -156,7 +156,8 @@
         {
           "id": "promptvault.treeView",
           "name": "PromptVault",
-          "icon": "$(database)"
+          "icon": "$(database)",
+          "type": "tree"
         }
       ]
     },
@@ -168,9 +169,14 @@
         "when": "editorTextFocus && editorHasSelection"
       },
       {
-        "command": "promptvault.openPanel",
-        "key": "ctrl+shift+p",
-        "mac": "cmd+shift+p"
+        "command": "-workbench.action.files.saveAll",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s"
+      },
+      {
+        "command": "promptvault.addPrompt",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
       }
     ],
     "configuration": [
@@ -272,12 +278,12 @@
           "promptvault.storageMode": {
             "type": "string",
             "enum": [
-              "workspace",
               "global",
+              "workspace",
               "custom"
             ],
-            "default": "workspace",
-            "description": "Storage mode: 'workspace' (in .promptvault folder), 'global' (VS Code global storage), or 'custom' (specify path)"
+            "default": "global",
+            "description": "Storage mode: 'global' (VS Code extension profile folder - recommended), 'workspace' (in .promptvault folder), or 'custom' (specify path)"
           },
           "promptvault.useEditorFont": {
             "type": "boolean",
@@ -290,6 +296,11 @@
             "minimum": 0.5,
             "maximum": 2.0,
             "description": "Font size multiplier for PromptVault (relative to editor font size)"
+          },
+          "promptvault.showRichTooltips": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show rich tooltips with prompt content, tags, and metadata in tree view"
           }
         }
       }

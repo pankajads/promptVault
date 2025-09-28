@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { PromptManager } from './promptManager';
-import { PromptTreeProvider } from './promptTreeProvider';
+import { PromptTreeProvider, PromptTreeItem } from './promptTreeProvider';
 import { PromptWebviewProvider } from './promptWebviewProvider';
 import { AIService } from './aiService';
 
@@ -8,178 +8,133 @@ let promptManager: PromptManager;
 let promptTreeProvider: PromptTreeProvider;
 let promptWebviewProvider: PromptWebviewProvider;
 let aiService: AIService;
+let extensionContext: vscode.ExtensionContext;
+let treeView: vscode.TreeView<PromptTreeItem>;
 
 export function activate(context: vscode.ExtensionContext) {
-    // Enable verbose logging
-    const outputChannel = vscode.window.createOutputChannel('PromptVault');
-    
-    function log(message: string, ...args: any[]) {
-        const timestamp = new Date().toISOString();
-        const logMessage = `[${timestamp}] ${message}`;
-        console.log(logMessage, ...args);
-        outputChannel.appendLine(logMessage + (args.length ? ' ' + JSON.stringify(args) : ''));
-    }
-    
-    function logError(message: string, error: any) {
-        const timestamp = new Date().toISOString();
-        const errorMessage = `[${timestamp}] ERROR: ${message}`;
-        console.error(errorMessage, error);
-        outputChannel.appendLine(errorMessage + ' ' + (error?.stack || error?.message || JSON.stringify(error)));
-        outputChannel.show(); // Show output channel on error
-    }
-    
-    // Make sure activation is async to handle any promises properly
-    activateExtension(context, log, logError, outputChannel).catch(error => {
-        logError('Critical activation failure', error);
-        vscode.window.showErrorMessage(`PromptVault failed to activate: ${error.message || error}`);
-    });
-}
-
-async function activateExtension(context: vscode.ExtensionContext, log: Function, logError: Function, outputChannel: vscode.OutputChannel) {
     try {
-        log('PromptVault extension activation started...');
-        log('VS Code version:', vscode.version);
-        log('Extension context:', {
-            extensionPath: context.extensionPath,
-            globalState: !!context.globalState,
-            workspaceState: !!context.workspaceState
-        });
+        console.log('PromptVault extension activation started...');
+        
+        // Store extension context globally
+        extensionContext = context;
         
         // Initialize services
-        log('Initializing PromptManager...');
+        console.log('Initializing PromptManager...');
         promptManager = new PromptManager(context);
-        if (!promptManager) {
-            throw new Error('Failed to initialize PromptManager');
-        }
-        log('PromptManager initialized successfully');
+        console.log('PromptManager initialized successfully');
 
-        log('Initializing AIService...');
+        console.log('Initializing AIService...');
         aiService = new AIService();
-        if (!aiService) {
-            throw new Error('Failed to initialize AIService');
-        }
-        log('AIService initialized successfully');
+        console.log('AIService initialized successfully');
 
-        log('Initializing PromptTreeProvider...');
+        console.log('Initializing PromptTreeProvider...');
+        if (promptTreeProvider) {
+            console.log('⚠️ Disposing existing PromptTreeProvider instance before creating new one');
+            promptTreeProvider.dispose();
+        }
         promptTreeProvider = new PromptTreeProvider(promptManager);
-        if (!promptTreeProvider) {
-            throw new Error('Failed to initialize PromptTreeProvider');
-        }
-        log('PromptTreeProvider initialized successfully');
+        console.log('PromptTreeProvider initialized successfully');
 
-        log('Initializing PromptWebviewProvider...');
+        console.log('Initializing PromptWebviewProvider...');
         promptWebviewProvider = new PromptWebviewProvider(context.extensionUri, promptManager);
-        if (!promptWebviewProvider) {
-            throw new Error('Failed to initialize PromptWebviewProvider');
-        }
-        log('PromptWebviewProvider initialized successfully');
+        console.log('PromptWebviewProvider initialized successfully');
 
         // Register tree view
-        log('Creating tree view...');
-        const treeView = vscode.window.createTreeView('promptvault.treeView', {
+        console.log('Creating tree view...');
+        treeView = vscode.window.createTreeView('promptvault.treeView', {
             treeDataProvider: promptTreeProvider,
             showCollapseAll: true,
             canSelectMany: false
         });
-        log('Tree view created successfully');
+        console.log('Tree view created successfully');
 
         // Set context to show tree view
-        log('Setting context...');
+        console.log('Setting context...');
         vscode.commands.executeCommand('setContext', 'promptvault.enabled', true);
-        log('Context set successfully');
+        console.log('Context set successfully');
 
         // Register commands
-        log('Registering commands...');
+        console.log('Registering commands...');
         const commands = [
             vscode.commands.registerCommand('promptvault.savePrompt', () => {
-                log('savePrompt command called');
+                console.log('savePrompt command called');
                 return saveSelectedPrompt();
             }),
             vscode.commands.registerCommand('promptvault.openPanel', () => {
-                log('openPanel command called');
+                console.log('openPanel command called');
                 return openPromptPanel();
             }),
             vscode.commands.registerCommand('promptvault.refreshTree', () => {
-                log('refreshTree command called');
+                console.log('refreshTree command called');
                 return promptTreeProvider.refresh();
             }),
             vscode.commands.registerCommand('promptvault.addPrompt', () => {
-                log('addPrompt command called');
+                console.log('addPrompt command called');
                 return addNewPrompt();
             }),
             vscode.commands.registerCommand('promptvault.editPrompt', (treeItem: any) => {
-                log('editPrompt command called with:', treeItem);
+                console.log('editPrompt command called with:', treeItem);
                 return editPrompt(treeItem.promptId || treeItem);
             }),
             vscode.commands.registerCommand('promptvault.deletePrompt', (treeItem: any) => {
-                log('deletePrompt command called with:', treeItem);
+                console.log('deletePrompt command called with:', treeItem);
                 return deletePrompt(treeItem.promptId || treeItem);
             }),
             vscode.commands.registerCommand('promptvault.copyPrompt', (treeItem: any) => {
-                log('copyPrompt command called with:', treeItem);
+                console.log('copyPrompt command called with:', treeItem);
                 return copyPrompt(treeItem.promptId || treeItem);
             }),
             vscode.commands.registerCommand('promptvault.exportPrompts', () => {
-                log('exportPrompts command called');
+                console.log('exportPrompts command called');
                 return exportPrompts();
             }),
             vscode.commands.registerCommand('promptvault.importPrompts', () => {
-                log('importPrompts command called');
+                console.log('importPrompts command called');
                 return importPrompts();
             }),
             vscode.commands.registerCommand('promptvault.searchPrompts', () => {
-                log('searchPrompts command called');
+                console.log('searchPrompts command called');
                 return searchPrompts();
             }),
             vscode.commands.registerCommand('promptvault.openPrompt', (promptId: string) => {
-                log('openPrompt command called with promptId:', promptId);
+                console.log('openPrompt command called with promptId:', promptId);
                 return openPrompt(promptId);
-            }),
-            vscode.commands.registerCommand('promptvault.showDiagnostics', () => {
-                log('showDiagnostics command called');
-                return showDiagnostics(log, logError, outputChannel);
             })
         ];
-        log(`Successfully registered ${commands.length} commands`);
+        console.log(`Successfully registered ${commands.length} commands`);
 
-        // Verify commands are registered
-        log('Verifying command registration...');
-        Promise.resolve(vscode.commands.getCommands(true)).then(allCommands => {
-            const promptVaultCommands = allCommands.filter(cmd => cmd.startsWith('promptvault.'));
-            log('Found registered PromptVault commands:', promptVaultCommands);
-            
-            // Test if addPrompt command specifically exists
-            if (promptVaultCommands.includes('promptvault.addPrompt')) {
-                log('✅ promptvault.addPrompt command is registered successfully');
-            } else {
-                logError('❌ promptvault.addPrompt command is NOT registered', 'Command missing from registration');
-            }
-        }).catch(error => {
-            logError('Failed to verify command registration', error);
-        });
-
-        // Register webview provider - REMOVED: User doesn't want sidebar webview
-        // log('Registering webview provider...');
-        // context.subscriptions.push(
-        //     vscode.window.registerWebviewViewProvider('promptvault.webview', promptWebviewProvider)
-        // );
-        // log('Webview provider registered successfully');
+        // Register webview provider
+        console.log('Registering webview provider...');
+        context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider('promptvault.webview', promptWebviewProvider)
+        );
+        console.log('Webview provider registered successfully');
 
         // Add all disposables to context
-        log('Adding disposables to context...');
+        console.log('Adding disposables to context...');
         context.subscriptions.push(
             treeView,
-            outputChannel, // Add output channel to disposables
             ...commands
         );
-        log('Disposables added successfully');
+        console.log('Disposables added successfully');
 
-        log('PromptVault extension activated successfully!');
+        // Listen for tree view selection changes
+        console.log('Setting up tree view selection listener...');
+        treeView.onDidChangeSelection(e => {
+            if (e.selection.length > 0 && e.selection[0].contextValue === 'prompt') {
+                const treeItem = e.selection[0] as any; // Cast to access promptId
+                const promptId = treeItem.promptId;
+                if (promptId) {
+                    openPrompt(promptId);
+                }
+            }
+        });
+        console.log('Tree view selection listener set up successfully');
+
+        console.log('PromptVault extension activated successfully!');
         vscode.window.showInformationMessage('PromptVault extension is now active!');
-        outputChannel.show(); // Show output channel after successful activation
-        
     } catch (error) {
-        logError('Failed to activate PromptVault extension', error);
+        console.error('Failed to activate PromptVault extension:', error);
         vscode.window.showErrorMessage(`Failed to activate PromptVault: ${error}`);
         throw error; // Re-throw to make VS Code aware of the failure
     }
@@ -211,11 +166,11 @@ async function saveSelectedPrompt() {
         if (enableAI) {
             const apiKey = config.get<string>('openaiApiKey', '');
             if (apiKey) {
-                aiSuggestions = await aiService.generateSuggestions(selectedText, language, {
-                    provider: 'openai',
-                    apiKey: apiKey,
-                    model: 'gpt-3.5-turbo'
-                });
+                const aiConfig = {
+                    provider: 'openai' as const,
+                    apiKey: apiKey
+                };
+                aiSuggestions = await aiService.generateSuggestions(selectedText, language, aiConfig);
             }
         }
 
@@ -244,25 +199,13 @@ async function saveSelectedPrompt() {
 }
 
 async function showPromptInputDialog(content: string, aiSuggestions: any = null): Promise<{title: string, tags: string[]} | undefined> {
-    // Generate smart suggestions based on content or AI
-    let suggestedTitle = 'New Prompt';
-    let suggestedTags = ['general'];
+    const suggestedTitle = aiSuggestions?.title || 'New Prompt';
+    const suggestedTags = aiSuggestions?.tags || ['general'];
 
-    if (aiSuggestions) {
-        suggestedTitle = aiSuggestions.title || suggestedTitle;
-        suggestedTags = aiSuggestions.tags || suggestedTags;
-    } else if (content && content.trim().length > 0) {
-        // Fallback: generate basic suggestions from content
-        suggestedTitle = generateTitleFromContent(content);
-        suggestedTags = generateTagsFromContent(content);
-    }
-
-    // Get title with AI suggestion
+    // Get title
     const title = await vscode.window.showInputBox({
-        prompt: 'Enter prompt title (AI suggested based on content)',
+        prompt: 'Enter prompt title',
         value: suggestedTitle,
-        placeHolder: aiSuggestions ? 'AI-generated title based on your content' : 'Generated from content keywords',
-        ignoreFocusOut: true,
         validateInput: (value) => {
             if (!value || value.trim().length === 0) {
                 return 'Title cannot be empty';
@@ -275,12 +218,11 @@ async function showPromptInputDialog(content: string, aiSuggestions: any = null)
         return undefined;
     }
 
-    // Get tags with AI suggestion
+    // Get tags
     const tagsInput = await vscode.window.showInputBox({
-        prompt: 'Enter tags (comma-separated, AI suggested based on content)',
+        prompt: 'Enter tags (comma-separated)',
         value: suggestedTags.join(', '),
-        placeHolder: aiSuggestions ? 'AI-generated tags based on your content' : 'e.g., ai, coding, documentation',
-        ignoreFocusOut: true
+        placeHolder: 'e.g., ai, coding, documentation'
     });
 
     const tags = tagsInput ? 
@@ -288,65 +230,6 @@ async function showPromptInputDialog(content: string, aiSuggestions: any = null)
         ['general'];
 
     return { title: title.trim(), tags };
-}
-
-function generateTitleFromContent(content: string): string {
-    // Simple title generation from content keywords
-    const words = content.toLowerCase()
-        .replace(/[^\w\s]/g, ' ')
-        .split(/\s+/)
-        .filter(word => word.length > 3)
-        .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'said', 'each', 'which', 'their', 'time', 'would', 'there', 'could', 'other'].includes(word));
-    
-    if (words.length === 0) {
-        return 'New Prompt';
-    }
-    
-    // Take first 3-4 meaningful words and capitalize
-    const titleWords = words.slice(0, Math.min(4, words.length));
-    return titleWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
-
-function generateTagsFromContent(content: string): string[] {
-    const lowerContent = content.toLowerCase();
-    const tags: string[] = [];
-    
-    // Programming-related keywords
-    if (/\b(function|class|method|variable|code|programming|javascript|python|typescript|java|c\+\+|html|css|sql|api|database)\b/.test(lowerContent)) {
-        tags.push('programming');
-    }
-    
-    // AI/ML keywords
-    if (/\b(ai|artificial intelligence|machine learning|neural network|model|training|algorithm|data science)\b/.test(lowerContent)) {
-        tags.push('ai');
-    }
-    
-    // Documentation keywords
-    if (/\b(documentation|readme|guide|tutorial|instructions|how to|step by step)\b/.test(lowerContent)) {
-        tags.push('documentation');
-    }
-    
-    // Web development keywords
-    if (/\b(web|website|frontend|backend|react|angular|vue|node|express|api|rest)\b/.test(lowerContent)) {
-        tags.push('web-development');
-    }
-    
-    // DevOps keywords
-    if (/\b(docker|kubernetes|deployment|ci\/cd|jenkins|github actions|aws|cloud|infrastructure)\b/.test(lowerContent)) {
-        tags.push('devops');
-    }
-    
-    // Testing keywords
-    if (/\b(test|testing|unit test|integration test|automation|jest|mocha|cypress)\b/.test(lowerContent)) {
-        tags.push('testing');
-    }
-    
-    // If no specific tags found, use general
-    if (tags.length === 0) {
-        tags.push('general');
-    }
-    
-    return tags;
 }
 
 function getSourceContext(): string {
@@ -382,289 +265,179 @@ async function openPromptPanel() {
 }
 
 async function addNewPrompt() {
-    try {
-        const outputChannel = vscode.window.createOutputChannel('PromptVault');
-        outputChannel.appendLine('addNewPrompt function called - creating centered add form panel');
-        
-        // Check if webview provider is available
-        if (!promptWebviewProvider) {
-            const error = 'PromptWebviewProvider not initialized';
-            outputChannel.appendLine('ERROR: ' + error);
-            vscode.window.showErrorMessage(error);
-            return;
+    const panel = vscode.window.createWebviewPanel(
+        'promptvault.addForm',
+        'Add New Prompt',
+        vscode.ViewColumn.Beside,
+        {
+            enableScripts: true,
+            localResourceRoots: [
+                vscode.Uri.joinPath(extensionContext.extensionUri, 'webview')
+            ]
         }
-        
-        // Create a new webview panel in the main editor area
-        const panel = vscode.window.createWebviewPanel(
-            'promptvault.addForm',
-            'Add New Prompt',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true
-            }
-        );
+    );
 
-        // Get the centered add form HTML content
-        panel.webview.html = promptWebviewProvider.getAddFormContent(panel.webview);
-        
-        // Handle messages from the add form
-        panel.webview.onDidReceiveMessage(async (message) => {
-            if (message.type === 'savePrompt') {
+    // Use the HTML form instead of simple input boxes
+    panel.webview.html = promptWebviewProvider.getAddFormContent(panel.webview);
+
+    // Handle messages from the webview
+    panel.webview.onDidReceiveMessage(async (message) => {
+        switch (message.type) {
+            case 'savePrompt':
                 try {
-                    const savedPrompt = await promptManager.savePromptQuick(
-                        message.title,
-                        message.content,
-                        message.tags
-                    );
-                    
-                    // Show success message first
-                    vscode.window.showInformationMessage(`Prompt "${message.title}" saved successfully!`);
-                    
-                    // Refresh the sidebar tree view
-                    promptTreeProvider.refresh();
-                    
-                    // Send success message to webview
-                    panel.webview.postMessage({
-                        type: 'saveSuccess',
-                        message: 'Prompt saved successfully!'
+                    const prompt = await promptManager.savePrompt({
+                        title: message.title,
+                        content: message.content,
+                        tags: message.tags,
+                        language: 'text',
+                        source: 'manual',
+                        context: ''
                     });
+
+                    vscode.window.showInformationMessage(`Prompt "${prompt.title}" created successfully!`);
                     
-                    // Close the panel after a short delay to show success message
-                    setTimeout(() => {
-                        panel.dispose();
-                    }, 1500);
+                    // Try to refresh tree, reset if duplicate ID error occurs
+                    try {
+                        promptTreeProvider.refresh();
+                    } catch (error) {
+                        console.error('Tree refresh failed, attempting reset:', error);
+                        if (error.toString().includes('already registered')) {
+                            await resetTreeView();
+                        } else {
+                            throw error;
+                        }
+                    }
                     
+                    panel.dispose(); // Close the form
                 } catch (error) {
-                    // Send error message to webview but keep panel open
-                    panel.webview.postMessage({
-                        type: 'showError',
-                        message: 'Failed to save prompt: ' + (error instanceof Error ? error.message : String(error))
-                    });
+                    vscode.window.showErrorMessage(`Failed to create prompt: ${error}`);
                 }
-            } else if (message.type === 'getAISuggestions') {
+                break;
+            case 'getAISuggestions':
                 try {
                     const config = vscode.workspace.getConfiguration('promptvault');
                     const enableAI = config.get<boolean>('enableAI', false);
+                    let suggestions = null;
                     
-                    if (!enableAI) {
-                        panel.webview.postMessage({
-                            type: 'aiSuggestions',
-                            suggestions: null
-                        });
-                        return;
+                    if (enableAI) {
+                        const apiKey = config.get<string>('openaiApiKey', '');
+                        if (apiKey) {
+                            const aiConfig = {
+                                provider: 'openai' as const,
+                                apiKey: apiKey
+                            };
+                            suggestions = await aiService.generateSuggestions(message.content, message.language || 'general', aiConfig);
+                        }
                     }
-                    
-                    const aiProvider = config.get<string>('aiProvider', 'openai');
-                    let apiKey = '';
-                    let aiConfig: any = {
-                        provider: aiProvider
-                    };
-                    
-                    // Get the appropriate API key and configuration based on provider
-                    switch (aiProvider) {
-                        case 'openai':
-                            apiKey = config.get<string>('openaiApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.model = config.get<string>('aiModel') || 'gpt-3.5-turbo';
-                            break;
-                        case 'anthropic':
-                            apiKey = config.get<string>('anthropicApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.model = config.get<string>('aiModel') || 'claude-3-haiku-20240307';
-                            break;
-                        case 'bedrock':
-                            apiKey = config.get<string>('awsAccessKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.region = config.get<string>('awsRegion', 'us-east-1');
-                            aiConfig.model = config.get<string>('aiModel');
-                            break;
-                        case 'custom':
-                            apiKey = config.get<string>('customAiApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.endpoint = config.get<string>('customAiEndpoint', '');
-                            aiConfig.model = config.get<string>('aiModel');
-                            break;
-                    }
-                    
-                    if (!apiKey) {
-                        panel.webview.postMessage({
-                            type: 'aiSuggestions',
-                            suggestions: null
-                        });
-                        return;
-                    }
-                    
-                    const suggestions = await aiService.generateSuggestions(
-                        message.content,
-                        message.language || 'general',
-                        aiConfig
-                    );
                     
                     panel.webview.postMessage({
                         type: 'aiSuggestions',
                         suggestions: suggestions
                     });
-                    
                 } catch (error) {
+                    console.error('AI suggestions failed:', error);
                     panel.webview.postMessage({
                         type: 'aiSuggestions',
                         suggestions: null
                     });
                 }
-            } else if (message.type === 'cancel') {
+                break;
+            case 'cancel':
                 panel.dispose();
-            }
-        });
-        
-    } catch (error) {
-        const outputChannel = vscode.window.createOutputChannel('PromptVault');
-        outputChannel.appendLine('Error in addNewPrompt: ' + (error instanceof Error ? error.stack : JSON.stringify(error)));
-        outputChannel.show();
-        vscode.window.showErrorMessage(`Failed to open PromptVault add form: ${error}`);
-    }
+                break;
+        }
+    });
 }
 
 async function editPrompt(promptId: string) {
     try {
-        const outputChannel = vscode.window.createOutputChannel('PromptVault');
-        outputChannel.appendLine('editPrompt function called with promptId: ' + promptId);
-        
         const prompt = await promptManager.getPrompt(promptId);
         if (!prompt) {
             vscode.window.showErrorMessage('Prompt not found');
             return;
         }
 
-        // Create a new webview panel in the main editor area for editing
         const panel = vscode.window.createWebviewPanel(
             'promptvault.editForm',
-            'Edit Prompt',
-            vscode.ViewColumn.One,
+            `Edit Prompt: ${prompt.title}`,
+            vscode.ViewColumn.Beside,
             {
                 enableScripts: true,
-                retainContextWhenHidden: true
+                localResourceRoots: [
+                    vscode.Uri.joinPath(extensionContext.extensionUri, 'webview')
+                ]
             }
         );
 
-        // Get the centered edit form HTML content with existing prompt data
+        // Use the HTML form with existing prompt data
         panel.webview.html = promptWebviewProvider.getAddFormContent(panel.webview, prompt);
-        
-        // Handle messages from the edit form
+
+        // Handle messages from the webview
         panel.webview.onDidReceiveMessage(async (message) => {
-            if (message.type === 'updatePrompt') {
-                try {
-                    await promptManager.updatePrompt(prompt.id, {
-                        title: message.title,
-                        content: message.content,
-                        tags: message.tags
-                    });
-                    
-                    // Show success message
-                    vscode.window.showInformationMessage(`Prompt "${message.title}" updated successfully!`);
-                    
-                    // Refresh the sidebar tree view
-                    promptTreeProvider.refresh();
-                    
-                    // Send success message to webview
-                    panel.webview.postMessage({
-                        type: 'saveSuccess',
-                        message: 'Prompt updated successfully!'
-                    });
-                    
-                    // Close the panel after a short delay
-                    setTimeout(() => {
-                        panel.dispose();
-                    }, 1500);
-                    
-                } catch (error) {
-                    panel.webview.postMessage({
-                        type: 'showError',
-                        message: 'Failed to update prompt: ' + error
-                    });
-                }
-            } else if (message.type === 'getAISuggestions') {
-                try {
-                    const config = vscode.workspace.getConfiguration('promptvault');
-                    const enableAI = config.get<boolean>('enableAI', false);
-                    
-                    if (!enableAI) {
+            switch (message.type) {
+                case 'updatePrompt':
+                    try {
+                        await promptManager.updatePrompt(promptId, {
+                            title: message.title,
+                            content: message.content,
+                            tags: message.tags
+                        });
+
+                        vscode.window.showInformationMessage(`Prompt "${message.title}" updated successfully!`);
+                        
+                        // Try to refresh tree, reset if duplicate ID error occurs
+                        try {
+                            promptTreeProvider.refresh();
+                        } catch (error) {
+                            console.error('Tree refresh failed, attempting reset:', error);
+                            if (error.toString().includes('already registered')) {
+                                await resetTreeView();
+                            } else {
+                                throw error;
+                            }
+                        }
+                        
+                        panel.dispose(); // Close the form
+                    } catch (error) {
+                        vscode.window.showErrorMessage(`Failed to update prompt: ${error}`);
+                    }
+                    break;
+                case 'getAISuggestions':
+                    try {
+                        const config = vscode.workspace.getConfiguration('promptvault');
+                        const enableAI = config.get<boolean>('enableAI', false);
+                        let suggestions = null;
+                        
+                        if (enableAI) {
+                            const apiKey = config.get<string>('openaiApiKey', '');
+                            if (apiKey) {
+                                const aiConfig = {
+                                    provider: 'openai' as const,
+                                    apiKey: apiKey
+                                };
+                                suggestions = await aiService.generateSuggestions(message.content, message.language || 'general', aiConfig);
+                            }
+                        }
+                        
+                        panel.webview.postMessage({
+                            type: 'aiSuggestions',
+                            suggestions: suggestions
+                        });
+                    } catch (error) {
+                        console.error('AI suggestions failed:', error);
                         panel.webview.postMessage({
                             type: 'aiSuggestions',
                             suggestions: null
                         });
-                        return;
                     }
-                    
-                    const aiProvider = config.get<string>('aiProvider', 'openai');
-                    let apiKey = '';
-                    let aiConfig: any = {
-                        provider: aiProvider
-                    };
-                    
-                    // Get the appropriate API key and configuration based on provider
-                    switch (aiProvider) {
-                        case 'openai':
-                            apiKey = config.get<string>('openaiApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.model = config.get<string>('aiModel') || 'gpt-3.5-turbo';
-                            break;
-                        case 'anthropic':
-                            apiKey = config.get<string>('anthropicApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.model = config.get<string>('aiModel') || 'claude-3-haiku-20240307';
-                            break;
-                        case 'bedrock':
-                            apiKey = config.get<string>('awsAccessKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.region = config.get<string>('awsRegion', 'us-east-1');
-                            aiConfig.model = config.get<string>('aiModel');
-                            break;
-                        case 'custom':
-                            apiKey = config.get<string>('customAiApiKey', '');
-                            aiConfig.apiKey = apiKey;
-                            aiConfig.endpoint = config.get<string>('customAiEndpoint', '');
-                            aiConfig.model = config.get<string>('aiModel');
-                            break;
-                    }
-                    
-                    if (!apiKey) {
-                        panel.webview.postMessage({
-                            type: 'aiSuggestions',
-                            suggestions: null
-                        });
-                        return;
-                    }
-                    
-                    const suggestions = await aiService.generateSuggestions(
-                        message.content,
-                        message.language || 'general',
-                        aiConfig
-                    );
-                    
-                    panel.webview.postMessage({
-                        type: 'aiSuggestions',
-                        suggestions: suggestions
-                    });
-                    
-                } catch (error) {
-                    panel.webview.postMessage({
-                        type: 'aiSuggestions',
-                        suggestions: null
-                    });
-                }
-            } else if (message.type === 'cancel') {
-                panel.dispose();
+                    break;
+                case 'cancel':
+                    panel.dispose();
+                    break;
             }
         });
-
-        outputChannel.appendLine('Centered edit form opened in main editor');
-        
     } catch (error) {
-        const outputChannel = vscode.window.createOutputChannel('PromptVault');
-        outputChannel.appendLine('Error in editPrompt: ' + (error instanceof Error ? error.stack : JSON.stringify(error)));
-        outputChannel.show();
-        vscode.window.showErrorMessage(`Failed to open edit UI: ${error}`);
+        vscode.window.showErrorMessage(`Failed to edit prompt: ${error}`);
     }
 }
 
@@ -909,64 +682,53 @@ async function copyPrompt(promptId: string) {
     }
 }
 
-async function showDiagnostics(log: Function, logError: Function, outputChannel: vscode.OutputChannel) {
+async function resetTreeView() {
     try {
-        log('=== PROMPTVAULT DIAGNOSTICS ===');
+        console.log('Resetting tree view due to duplicate ID error...');
         
-        // Extension info
-        log('Extension Info:');
-        log('- Version: 1.0.5');
-        log('- VS Code Version:', vscode.version);
-        
-        // Workspace info
-        log('Workspace Info:');
-        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-            log('- Workspace folders:', vscode.workspace.workspaceFolders.map(f => f.uri.fsPath));
-        } else {
-            log('- No workspace folders open');
+        // Dispose current tree view and provider
+        if (treeView) {
+            treeView.dispose();
         }
         
-        // Configuration
-        const config = vscode.workspace.getConfiguration('promptvault');
-        log('Configuration:');
-        log('- enableAI:', config.get('enableAI'));
-        log('- defaultTags:', config.get('defaultTags'));
-        log('- storageMode:', config.get('storageMode'));
-        log('- storagePath:', config.get('storagePath'));
-        
-        // Commands
-        log('Checking command registration...');
-        const allCommands = await vscode.commands.getCommands(true);
-        const promptVaultCommands = allCommands.filter(cmd => cmd.startsWith('promptvault.'));
-        log('Registered PromptVault commands:', promptVaultCommands);
-        
-        // Storage info
-        if (promptManager) {
-            log('PromptManager initialized: YES');
-            const prompts = await promptManager.getAllPrompts();
-            log('Total prompts:', prompts.length);
-        } else {
-            log('PromptManager initialized: NO');
+        if (promptTreeProvider && typeof promptTreeProvider.dispose === 'function') {
+            promptTreeProvider.dispose();
         }
         
-        // Tree provider
-        if (promptTreeProvider) {
-            log('PromptTreeProvider initialized: YES');
-        } else {
-            log('PromptTreeProvider initialized: NO');
-        }
+        // Wait a moment for cleanup
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        log('=== END DIAGNOSTICS ===');
-        outputChannel.show();
+        // Create new tree provider
+        console.log('Creating new PromptTreeProvider...');
+        promptTreeProvider = new PromptTreeProvider(promptManager);
         
-        vscode.window.showInformationMessage('Diagnostics completed. Check PromptVault output channel for details.');
+        // Create new tree view
+        console.log('Creating new tree view...');
+        treeView = vscode.window.createTreeView('promptvault.treeView', {
+            treeDataProvider: promptTreeProvider,
+            showCollapseAll: true,
+            canSelectMany: false
+        });
         
+        console.log('Tree view reset completed successfully');
+        return true;
     } catch (error) {
-        logError('Diagnostics failed', error);
-        vscode.window.showErrorMessage(`Diagnostics failed: ${error}`);
+        console.error('Failed to reset tree view:', error);
+        return false;
     }
 }
 
 export function deactivate() {
-    // Cleanup resources if needed
+    // Cleanup resources
+    console.log('PromptVault extension deactivating...');
+    
+    if (treeView) {
+        treeView.dispose();
+    }
+    
+    if (promptTreeProvider && typeof promptTreeProvider.dispose === 'function') {
+        promptTreeProvider.dispose();
+    }
+    
+    console.log('PromptVault extension deactivated');
 }

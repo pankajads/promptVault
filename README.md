@@ -49,11 +49,19 @@ After installation, PromptVault appears in your **Explorer panel** (left sidebar
 3. **Optional**: Use **"✨ AI Suggest"** for intelligent suggestions
 4. **Fill title and tags**, then **Save**
 
+#### Method 2b: Quick Add Shortcut
+1. **Press `Ctrl+Shift+A`** (`Cmd+Shift+A` on Mac) from anywhere
+2. **Form opens** for creating a new prompt
+3. **Enter content, title, and tags**
+4. **Save** your new prompt
+
 #### Method 3: Quick Keyboard Shortcut
 1. **Select text** in any file
 2. **Press `Ctrl+Shift+S`** (`Cmd+Shift+S` on Mac)
 3. **Form opens** with selected text pre-filled
 4. **Add title/tags** and save
+
+> **Note**: If `Ctrl+Shift+S` doesn't work, try using the Command Palette (`Ctrl+Shift+P`) and search for "PromptVault: Save to PromptVault"
 
 ### 🔍 **Managing Your Prompts**
 

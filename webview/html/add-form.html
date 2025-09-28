@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} Prompt</title>
+    <link rel="stylesheet" href="{{CSS_PATH}}">
+</head>
+<body>
+    <div class="form-container">
+        <h1 class="form-title">{{FORM_TITLE}} Prompt</h1>
+        
+        <form id="promptForm">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="title" name="title" value="{{TITLE_VALUE}}" required style="flex: 1;">
+                    <button type="button" id="aiSuggestBtn" class="btn btn-ai" onclick="getAISuggestions()">
+                        ✨ AI Suggest
+                        <span id="aiLoading" class="ai-loading">...</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input type="text" id="tags" name="tags" value="{{TAGS_VALUE}}" placeholder="e.g., development, react, debugging">
+                <div class="help-text">Separate multiple tags with commas</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">Content</label>
+                <div id="content" class="content-input" contenteditable="true">{{CONTENT_VALUE}}</div>
+                <div class="help-text">Type normally, press Enter for new lines. Click Save button when finished.</div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{SUBMIT_BUTTON}} Prompt</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{JS_PATH}}"></script>
+</body>
+</html>

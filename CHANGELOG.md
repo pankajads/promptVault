@@ -1,156 +1,178 @@
-# Changelog
+# Change Log
 
 All notable changes to the "PromptVault" extension will be documented in this file.
 
-## [1.1.2] - 2025-09-21
+## [1.2.1] - 2025-09-27
 
-### 🎉 Major Release: Complete AI Integration & Enhanced UX
+### 🐛 Critical Fixes
+- **Tree View Duplicate IDs**: Fixed the fundamental issue where prompts appearing under multiple tags caused "Element with id already registered" errors
+- **Multi-Tag Support**: Properly implemented reference-based tree structure where the same prompt can appear under multiple tag groups without ID conflicts
+- **Stable Tree Items**: Each tree item now has a unique ID combining tag context and prompt UUID (e.g., `prompt-javascript-uuid123`)
+- **Save/Edit Operations**: Fixed duplicate ID errors that occurred when saving or editing prompts
 
-This is a comprehensive update that transforms PromptVault from a basic prompt manager into a powerful, AI-enhanced productivity tool. This release consolidates all improvements and jumps from version 1.0.2 to 1.1.2.
+### Technical
+- **Proper Architecture**: Implemented the correct tree view pattern where prompts are referenced by UUID under multiple tag nodes
+- **UUID-Based IDs**: Ensured all prompt IDs use UUIDs for true uniqueness
+- **Tag-Scoped Tree Items**: Tree item IDs now include tag context to prevent conflicts when same prompt appears under multiple tags
 
-### ✨ NEW FEATURES
+## [1.2.0] - 2025-09-27
 
-#### 🤖 Multi-Provider AI Integration
-- **AI-Powered Suggestions**: Get intelligent title and tag recommendations for your prompts
-- **Multiple AI Providers Support**:
-  - **OpenAI (ChatGPT)**: GPT-3.5 Turbo, GPT-4 support
-  - **Anthropic (Claude)**: Claude-3 models integration  
-  - **AWS Bedrock**: Enterprise foundation models framework
-  - **Custom APIs**: Support for local LLMs, Ollama, and OpenAI-compatible endpoints
-- **Smart Context Analysis**: AI analyzes your prompt content and programming language for better suggestions
-- **Optional & Fallback**: Works perfectly without AI - completely optional feature
+### ✨ Major Features
+- **Rich HTML Forms**: Replaced simple input boxes with beautiful, interactive HTML forms for adding and editing prompts
+- **Modern Web UI**: Clean, responsive forms with VS Code theme integration and proper styling
+- **AI Integration**: Built-in AI suggestion button directly in the form interface
+- **Code Organization**: Separated HTML, CSS, and JavaScript into dedicated files for better maintainability
 
-#### 🎨 Enhanced User Interface
-- **✨ AI Suggest Button**: Added to both Add New Prompt and Edit Prompt forms
-- **Progressive Settings UX**: Clean, conditional settings that only show relevant options
-- **Rich Markdown Descriptions**: Settings include helpful links and examples
-- **Loading States & Feedback**: Visual feedback during AI processing
-- **Improved Error Messages**: Clear guidance when AI is unavailable
+### Improved
+- **User Experience**: Professional-looking forms with proper validation and feedback
+- **Developer Experience**: Cleaner codebase with separated concerns (HTML templates, CSS styles, JS logic)
+- **Accessibility**: Proper form labels, keyboard navigation, and focus management
+- **Consistency**: Both add and edit operations now use the same rich form interface
 
-#### ⚙️ Advanced Configuration
-- **Progressive Disclosure**: AI settings only appear when enabled (AI OFF by default)
-- **Provider-Specific Options**: Only relevant settings show for selected AI provider
-- **Smart Defaults**: Clean initial experience with sensible provider defaults
-- **Organized Categories**: 
-  - "AI Integration" - All AI-related settings
-  - "Storage & Behavior" - Storage and functional settings
+### Added
+- HTML template system with placeholder replacement
+- Dedicated CSS files for form styling
+- JavaScript modules for form logic and interactions
+- Resource URI handling for webview assets
+- Form configuration injection for edit mode
+- Comprehensive error handling for form operations
 
-### 🔧 CRITICAL FIXES (Previously Reported Issues)
+### Technical
+- Template-based HTML generation with proper escaping
+- Webview resource management and security
+- Message passing between extension and webview
+- AI service integration with form interface
 
-#### Form Functionality
-- **✅ Save Button Fixed**: "Add New Prompt" save button now works correctly
-- **✅ Content Input Enhanced**: Removed restrictive Enter key behavior, natural text input
-- **✅ Edit Prompt Fixed**: Edit now properly pre-populates form instead of showing blank add form
-- **✅ Form Validation**: Better error handling and user feedback
+## [1.1.4] - 2025-09-27
 
-#### Cross-Platform Compatibility  
-- **✅ Windows Support Confirmed**: 100% compatible with Windows machines
-- **✅ Cross-Platform File Operations**: Robust path handling for all operating systems
-- **✅ Universal Font Support**: Font synchronization works across platforms
+### Improved
+- **Tree View Tooltips**: Enhanced hover tooltips with rich content preview, tags, and metadata
+- **Tooltip Performance**: Optimized tooltip generation for faster hover response
+- **User Experience**: Added markdown-formatted tooltips showing prompt content, language, source, and update date
+- **Configuration**: Added `promptvault.showRichTooltips` setting to control tooltip richness
 
-### 🚀 IMPROVEMENTS
+### Fixed
+- **Hover Delay**: Improved tooltip responsiveness by pre-computing tooltip data
+- **Information Density**: Tooltips now show useful information instead of just the title
 
-#### Developer Experience
-- **Enhanced Testing**: Comprehensive test suite with 22/23 tests passing
-- **Better Error Handling**: Graceful fallbacks and detailed logging
-- **Code Organization**: Clean architecture with provider interfaces
-- **Legacy Compatibility**: Existing prompts and workflows remain unchanged
+### Added
+- Rich markdown tooltips for prompt items with content preview
+- Simple count tooltips for tag groups
+- Configuration option to enable/disable rich tooltips
+- Better visual feedback on hover
 
-#### Performance & Reliability
-- **Real-time Font Sync**: PromptVault webviews automatically match VS Code editor fonts
-- **Improved Tree View**: Enhanced stability and unique ID generation
-- **Better Resource Management**: Proper disposal of webview providers and listeners
+## [1.1.3] - 2025-09-27
 
-### 📋 CORE FEATURES (Established)
+### Changed
+- **Default Storage Location**: Changed default storage from workspace to VS Code extension profile folder
+- **Global Storage**: Prompts now persist across different workspaces by default
+- **Storage Configuration**: Reordered storage options to prioritize global storage (recommended)
 
-#### Prompt Management
+### Improved
+- **User Experience**: Prompts are now available across all VS Code instances and workspaces
+- **Data Persistence**: Better data management using VS Code's global storage system
+- **Configuration**: Clearer descriptions for storage mode options
+
+### Technical
+- Updated `PromptManager.getStoragePath()` to default to global storage
+- Modified storage mode priority: custom > workspace > global (default)
+- Enhanced storage configuration with better descriptions and enum ordering
+
+## [1.0.6] - 2025-09-27
+
+### Improved
+- **Code Quality**: Refactored `PromptInput` interface to use TypeScript `Omit` utility type
+- **Type Safety**: Eliminated duplicate property definitions between `Prompt` and `PromptInput`
+- **AI Service**: Fixed AI configuration to use proper `AIConfig` object structure
+- **Maintainability**: Single source of truth for prompt properties reduces maintenance overhead
+
+### Technical
+- Replaced `PromptInput` interface with `Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>`
+- Updated AI service calls to use structured configuration objects
+- Improved TypeScript type safety and compile-time validation
+
+## [1.0.5] - 2025-09-20
+
+### Fixed
+- **Command Registration**: Fixed extension activation issues that prevented commands from being registered
+- **Extension ID Reference**: Fixed incorrect extension ID reference in webview resource loading
+- **Error Handling**: Added better error handling and logging during extension activation
+- **Tree View Commands**: All tree view commands (Add Prompt, Edit, Delete, etc.) now work correctly
+
+### Improved
+- Enhanced extension activation reliability
+- Better error messages for debugging activation issues
+
+## [1.0.3] - 2025-09-20
+
+### Fixed
+- **Tree View Visibility**: Removed conditional visibility requirement for the PromptVault tree view in Explorer panel
+- **User Experience**: Tree view now appears for all users immediately upon installation from VS Code Marketplace
+- **Package Configuration**: Fixed `package.json` views configuration to ensure consistent tree view display
+
+### Changed
+- Improved extension activation and tree view registration for better marketplace compatibility
+
+## [1.0.2] - 2025-09-20
+
+### Fixed
+- **Tree View Visibility**: Removed conditional visibility requirement for the PromptVault tree view in Explorer panel
+- **User Experience**: Tree view now appears for all users immediately upon installation from VS Code Marketplace
+- **Package Configuration**: Fixed `package.json` views configuration to ensure consistent tree view display
+
+### Changed
+- Improved extension activation and tree view registration for better marketplace compatibility
+
+## [1.0.1] - 2025-09-20
+
+### Fixed
+- Updated publisher configuration and repository URLs
+- Marketplace publishing configuration improvements
+
+## [1.0.0] - 2025-09-20
+
+### Added
+- Initial release of PromptVault
 - Save selected text as prompts with right-click context menu
-- Tree view for organizing prompts by tags in Explorer panel
-- Search and filter functionality across titles, content, and tags
-- Import/Export capabilities for backup and sharing
-- Local JSON file storage in `.promptvault/` directory
-
-#### User Interface
-- Native VS Code integration with tree view
-- Webview panels for prompt viewing and editing
-- Keyboard shortcuts (Ctrl+Shift+S / Cmd+Shift+S to save prompt)
-- Context menu support for quick actions
-
-#### Storage & Organization
-- Tag-based categorization system
-- Multiple storage modes (workspace, global, custom)
-- Cross-workspace compatibility
-- Configurable storage paths and limits
-
-### 🔒 SECURITY & PRIVACY
-- **Local-First**: All prompts stored locally by default
-- **Secure API Keys**: API keys stored in VS Code's secure settings
-- **Optional External**: No data sent to external services without explicit AI usage
-- **Data Control**: Users maintain full control over their prompt data
-
-### ⚙️ CONFIGURATION OPTIONS
-
-```json
-{
-  // AI Integration (New in 1.1.2)
-  "promptvault.enableAI": false,
-  "promptvault.aiProvider": "openai|anthropic|bedrock|custom", 
-  "promptvault.openaiApiKey": "",
-  "promptvault.anthropicApiKey": "",
-  "promptvault.awsRegion": "us-east-1",
-  "promptvault.awsAccessKey": "",
-  "promptvault.customAiEndpoint": "",
-  "promptvault.customAiApiKey": "",
-  "promptvault.aiModel": "",
-  
-  // Storage & Behavior
-  "promptvault.defaultTags": ["general"],
-  "promptvault.autoSave": true,
-  "promptvault.maxPrompts": 1000,
-  "promptvault.storageMode": "workspace|global|custom",
-  "promptvault.storagePath": "",
-  "promptvault.useEditorFont": true,
-  "promptvault.fontSizeMultiplier": 1.0
-}
-```
-
-### 🚀 MIGRATION FROM 1.0.2
-
-**Zero-effort upgrade!**
-- ✅ All existing prompts remain unchanged
-- ✅ All existing workflows continue to work  
-- ✅ New AI features are completely optional
-- ✅ Previous settings are preserved
-- ✅ No data loss or breaking changes
-
-### 📊 TESTING & VALIDATION
-- ✅ Comprehensive test suite (22/23 tests passing)
-- ✅ Cross-platform compatibility verified (macOS, Windows, Linux)
-- ✅ AI integration tested with multiple providers
-- ✅ Backward compatibility confirmed
-- ✅ Performance optimization validated
-
-### 🎯 USER BENEFITS
-
-1. **⚡ Faster Workflow**: AI suggests titles and tags instantly
-2. **🎯 Better Organization**: Intelligent tag suggestions improve categorization
-3. **🔀 Flexible AI**: Choose your preferred LLM provider or use none at all
-4. **✨ Enhanced UX**: Streamlined interface with progressive disclosure
-5. **🔒 Privacy-First**: Local storage with optional external AI
-
----
-
-## [1.0.2] - 2025-09-20 (Previous Stable)
+- Tree view for organizing prompts by tags
+- AI-powered title and tag suggestions (optional)
+- Local file storage using JSON
+- Search and filter functionality
+- Import/Export capabilities
+- Keyboard shortcuts (Ctrl+Shift+S to save prompt)
+- Integration with VS Code editor
+- Support for multiple programming languages
+- Prompt preview with syntax highlighting
+- Tag-based organization system
 
 ### Features
-- Basic prompt management functionality
-- Local storage and organization  
-- Simple add/edit/delete operations
-- Tree view navigation
-- Search and filtering
-- Import/Export capabilities
+- **Core Functionality**
+  - Save any selected text as a prompt
+  - Organize prompts in hierarchical tree structure
+  - Tag-based categorization
+  - Search across titles, content, and tags
+  
+- **AI Integration**
+  - Optional OpenAI integration for smart suggestions
+  - Automatic title generation
+  - Intelligent tag recommendations
+  
+- **Storage & Management**
+  - Local JSON file storage
+  - Import/Export functionality
+  - Backup and restore capabilities
+  - Cross-workspace compatibility
 
-### Known Issues (Fixed in 1.1.2)
-- Save button not working in Add New Prompt
-- Content input restrictions (Shift+Enter required)
-- Edit prompt showing blank form instead of pre-populated data
+- **User Experience**
+  - Native VS Code integration
+  - Context menu support
+  - Keyboard shortcuts
+  - Webview panels for prompt viewing
+  - Tree view for navigation
+
+### Technical Details
+- Built with TypeScript
+- Uses VS Code Extension API
+- Supports VS Code 1.74.0+
+- Local storage in `.promptvault/` directory
+- Optional OpenAI API integration
