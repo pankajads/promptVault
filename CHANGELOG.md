@@ -2,6 +2,18 @@
 
 All notable changes to the "PromptVault" extension will be documented in this file.
 
+## [1.2.2] - 2025-11-22
+
+### 🐛 Bug Fixes
+- **Multiple Windows Issue**: Fixed critical bug where selecting a prompt from the tree view opened multiple windows instead of just one
+- **Event Handler Cleanup**: Removed duplicate event handling that caused the same prompt to open twice simultaneously
+- **Tree View Behavior**: Improved tree view selection behavior to be more predictable and responsive
+
+### Technical
+- **Event Architecture**: Centralized prompt opening logic to use only the selection listener, removing redundant command properties from tree items
+- **Code Cleanup**: Simplified tree item creation by removing unnecessary command properties that were causing duplicate calls
+- **Performance**: Reduced overhead by eliminating duplicate event processing when selecting prompts
+
 ## [1.2.1] - 2025-09-27
 
 ### 🐛 Critical Fixes

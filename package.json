@@ -2,7 +2,7 @@
   "name": "promptvault",
   "displayName": "PromptVault Manager",
   "description": "Personal Prompt Manager for managing and organizing prompts locally with AI-powered suggestions",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "publisher": "pankajads",
   "license": "MIT",
   "repository": {
