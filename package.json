@@ -2,7 +2,7 @@
   "name": "promptvault",
   "displayName": "PromptVault Manager",
   "description": "Personal Prompt Manager for managing and organizing prompts locally with AI-powered suggestions",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "publisher": "pankajads",
   "license": "MIT",
   "repository": {
@@ -101,6 +101,12 @@
         "command": "promptvault.showDiagnostics",
         "title": "Show Diagnostics",
         "category": "PromptVault"
+      },
+      {
+        "command": "promptvault.showStorageInfo",
+        "title": "Show Storage Information",
+        "category": "PromptVault",
+        "icon": "$(info)"
       }
     ],
     "menus": {
@@ -131,6 +137,11 @@
           "command": "promptvault.exportPrompts",
           "when": "view == promptvault.treeView",
           "group": "navigation@4"
+        },
+        {
+          "command": "promptvault.showStorageInfo",
+          "when": "view == promptvault.treeView",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [

@@ -11,7 +11,7 @@ let aiService: AIService;
 let extensionContext: vscode.ExtensionContext;
 let treeView: vscode.TreeView<PromptTreeItem>;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     try {
         console.log('PromptVault extension activation started...');
         
@@ -22,6 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('Initializing PromptManager...');
         promptManager = new PromptManager(context);
         console.log('PromptManager initialized successfully');
+
+        // Simple approach - no complex setup wizard needed
 
         console.log('Initializing AIService...');
         aiService = new AIService();
@@ -99,6 +101,10 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.registerCommand('promptvault.openPrompt', (promptId: string) => {
                 console.log('openPrompt command called with promptId:', promptId);
                 return openPrompt(promptId);
+            }),
+            vscode.commands.registerCommand('promptvault.showStorageInfo', () => {
+                console.log('showStorageInfo command called');
+                return showStorageInfo();
             })
         ];
         console.log(`Successfully registered ${commands.length} commands`);
@@ -152,6 +158,9 @@ async function saveSelectedPrompt() {
         vscode.window.showErrorMessage('Please select text to save as prompt');
         return;
     }
+
+    // Check if this is first time use and no storage is configured
+    await ensureStorageConfigured();
 
     const selectedText = editor.document.getText(selection);
     const language = editor.document.languageId;
@@ -265,6 +274,9 @@ async function openPromptPanel() {
 }
 
 async function addNewPrompt() {
+    // Check if this is first time use and no storage is configured
+    await ensureStorageConfigured();
+    
     const panel = vscode.window.createWebviewPanel(
         'promptvault.addForm',
         'Add New Prompt',
@@ -715,6 +727,332 @@ async function resetTreeView() {
     } catch (error) {
         console.error('Failed to reset tree view:', error);
         return false;
+    }
+}
+
+
+
+/**
+ * Simple function to ensure storage is configured before first use
+ */
+async function ensureStorageConfigured(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('promptvault');
+    const storageMode = config.get<string>('storageMode', 'global');
+    const customPath = config.get<string>('storagePath', '');
+    
+    // Check if we need to ask for storage configuration
+    const storageInfo = promptManager.getStorageInfo();
+    const isFirstTime = storageInfo.count === 0 && !extensionContext.globalState.get<boolean>('promptvault.storageConfigured', false);
+    
+    if (isFirstTime) {
+        const choice = await vscode.window.showInformationMessage(
+            '🗄️ Welcome to PromptVault! Where would you like to store your prompts?',
+            {
+                detail: 'Choose a storage location for your prompts. You can change this later in settings.',
+                modal: true
+            },
+            'Global Storage (Recommended)',
+            'Workspace Folder',
+            'Custom Location',
+            'Import Existing'
+        );
+
+        if (!choice) {
+            throw new Error('Storage setup cancelled');
+        }
+
+        switch (choice) {
+            case 'Global Storage (Recommended)':
+                await config.update('storageMode', 'global', vscode.ConfigurationTarget.Global);
+                break;
+                
+            case 'Workspace Folder':
+                if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+                    vscode.window.showWarningMessage('No workspace folder open. Using global storage instead.');
+                    await config.update('storageMode', 'global', vscode.ConfigurationTarget.Global);
+                } else {
+                    await config.update('storageMode', 'workspace', vscode.ConfigurationTarget.Global);
+                }
+                break;
+                
+            case 'Custom Location':
+                const uri = await vscode.window.showOpenDialog({
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                    title: 'Choose PromptVault Storage Folder',
+                    openLabel: 'Select Folder'
+                });
+                
+                if (uri && uri[0]) {
+                    await config.update('storageMode', 'custom', vscode.ConfigurationTarget.Global);
+                    await config.update('storagePath', uri[0].fsPath, vscode.ConfigurationTarget.Global);
+                    vscode.window.showInformationMessage(`Custom storage location set: ${uri[0].fsPath}`);
+                } else {
+                    // User cancelled, ask what they want to do
+                    const fallbackChoice = await vscode.window.showInformationMessage(
+                        'No folder selected. What would you like to do?',
+                        'Use Global Storage',
+                        'Try Again',
+                        'Cancel'
+                    );
+                    
+                    if (fallbackChoice === 'Use Global Storage') {
+                        await config.update('storageMode', 'global', vscode.ConfigurationTarget.Global);
+                    } else if (fallbackChoice === 'Try Again') {
+                        // Re-trigger the setup
+                        await extensionContext.globalState.update('promptvault.storageConfigured', false);
+                        return ensureStorageConfigured();
+                    } else {
+                        throw new Error('Storage setup cancelled');
+                    }
+                }
+                break;
+                
+            case 'Import Existing':
+                await handleImportExisting();
+                break;
+        }
+
+        // Mark storage as configured
+        await extensionContext.globalState.update('promptvault.storageConfigured', true);
+        
+        // Reinitialize promptManager with new settings
+        promptManager = new PromptManager(extensionContext);
+        
+        // Wait for PromptManager to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Reinitialize tree provider with new prompt manager
+        if (promptTreeProvider) {
+            promptTreeProvider.dispose();
+        }
+        promptTreeProvider = new PromptTreeProvider(promptManager);
+        
+        // Recreate tree view with new provider
+        if (treeView) {
+            treeView.dispose();
+        }
+        treeView = vscode.window.createTreeView('promptvault.treeView', {
+            treeDataProvider: promptTreeProvider,
+            showCollapseAll: true,
+            canSelectMany: false
+        });
+        
+        // Add to subscriptions
+        extensionContext.subscriptions.push(treeView);
+        
+        // Set up tree view selection listener again
+        treeView.onDidChangeSelection(e => {
+            if (e.selection.length > 0 && e.selection[0].contextValue === 'prompt') {
+                const treeItem = e.selection[0] as any;
+                const promptId = treeItem.promptId;
+                if (promptId) {
+                    openPrompt(promptId);
+                }
+            }
+        });
+        
+        // Force a refresh after everything is set up
+        setTimeout(async () => {
+            const prompts = await promptManager.getAllPrompts();
+            console.log(`Found ${prompts.length} prompts in new storage location:`, prompts.map(p => p.title));
+            promptTreeProvider.refresh();
+            console.log('Tree view refreshed after setup');
+        }, 100);
+        
+        vscode.window.showInformationMessage('✅ PromptVault storage configured successfully!');
+    }
+}
+
+/**
+ * Handle importing existing prompts
+ */
+async function handleImportExisting(): Promise<void> {
+    const choice = await vscode.window.showQuickPick([
+        {
+            label: '📄 Import from JSON file',
+            description: 'Import from a PromptVault export file',
+            detail: 'Select a .json file exported from PromptVault'
+        },
+        {
+            label: '🔍 Search for existing data',
+            description: 'Look for prompts from other VS Code installations',
+            detail: 'Automatically search common locations'
+        }
+    ], {
+        placeHolder: 'How would you like to import your existing prompts?'
+    });
+
+    if (!choice) {
+        return;
+    }
+
+    if (choice.label.includes('JSON file')) {
+        const uri = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            filters: {
+                'JSON Files': ['json']
+            },
+            title: 'Select PromptVault Export File'
+        });
+
+        if (uri && uri[0]) {
+            try {
+                const importedCount = await promptManager.importPrompts(uri[0].fsPath);
+                vscode.window.showInformationMessage(`Successfully imported ${importedCount} prompts!`);
+            } catch (error) {
+                vscode.window.showErrorMessage(`Import failed: ${error}`);
+            }
+        }
+    } else if (choice.label.includes('Search for existing')) {
+        // Simple search in common VS Code variant locations
+        const foundData = await searchForExistingPrompts();
+        
+        if (foundData.length === 0) {
+            vscode.window.showInformationMessage('No existing PromptVault data found in common locations.');
+            return;
+        }
+
+        const selected = await vscode.window.showQuickPick(
+            foundData.map(item => ({
+                label: `📁 ${item.path}`,
+                description: `${item.count} prompts`,
+                detail: item.path,
+                path: item.path
+            })),
+            {
+                placeHolder: 'Select data to import:'
+            }
+        );
+
+        if (selected) {
+            try {
+                const importedCount = await promptManager.importPrompts(selected.path + '/prompts.json');
+                vscode.window.showInformationMessage(`Successfully imported ${importedCount} prompts!`);
+            } catch (error) {
+                vscode.window.showErrorMessage(`Import failed: ${error}`);
+            }
+        }
+    }
+}
+
+/**
+ * Simple search for existing PromptVault data
+ */
+async function searchForExistingPrompts(): Promise<Array<{path: string, count: number}>> {
+    const found: Array<{path: string, count: number}> = [];
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    const homeDir = os.homedir();
+
+    // Check common VS Code variant locations
+    const variants = ['Code', 'Code - Insiders', 'VSCodium', 'Cursor', 'Kiro'];
+    const appDataPaths = [
+        path.join(homeDir, 'Library', 'Application Support'), // macOS
+        path.join(homeDir, 'AppData', 'Roaming'), // Windows
+        path.join(homeDir, '.config') // Linux
+    ];
+
+    for (const appDataPath of appDataPaths) {
+        if (!fs.existsSync(appDataPath)) continue;
+        
+        for (const variant of variants) {
+            const promptsPath = path.join(
+                appDataPath,
+                variant,
+                'User',
+                'globalStorage',
+                'pankajads.promptvault',
+                'promptvault',
+                'prompts.json'
+            );
+            
+            if (fs.existsSync(promptsPath)) {
+                try {
+                    const data = fs.readFileSync(promptsPath, 'utf8');
+                    const prompts = JSON.parse(data);
+                    if (Array.isArray(prompts) && prompts.length > 0) {
+                        found.push({
+                            path: path.dirname(promptsPath),
+                            count: prompts.length
+                        });
+                    }
+                } catch (error) {
+                    // Ignore invalid files
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+/**
+ * Show current storage information for debugging
+ */
+async function showStorageInfo() {
+    try {
+        const config = vscode.workspace.getConfiguration('promptvault');
+        const storageMode = config.get<string>('storageMode', 'global');
+        const customPath = config.get<string>('storagePath', '');
+        const storageInfo = promptManager.getStorageInfo();
+        
+        const info = `
+**PromptVault Storage Information**
+
+📁 **Storage Mode:** ${storageMode}
+📂 **Storage Path:** ${storageInfo.path}
+📊 **Total Prompts:** ${storageInfo.count}
+💾 **Storage Size:** ${(storageInfo.size / 1024).toFixed(2)} KB
+🎯 **Custom Path:** ${customPath || 'Not set'}
+⚙️ **Storage Configured:** ${extensionContext.globalState.get<boolean>('promptvault.storageConfigured', false)}
+
+**Debug Info:**
+- Extension Context: ${extensionContext ? 'Available' : 'Not available'}
+- Prompt Manager: ${promptManager ? 'Initialized' : 'Not initialized'}
+- Tree Provider: ${promptTreeProvider ? 'Available' : 'Not available'}
+        `;
+
+        vscode.window.showInformationMessage('Storage info displayed in new panel');
+        
+        // Show in a webview panel
+        const panel = vscode.window.createWebviewPanel(
+            'promptvault.storageInfo',
+            'PromptVault Storage Information',
+            vscode.ViewColumn.Beside,
+            { enableScripts: false }
+        );
+
+        panel.webview.html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { 
+                        font-family: var(--vscode-font-family); 
+                        background-color: var(--vscode-editor-background);
+                        color: var(--vscode-editor-foreground);
+                        padding: 20px;
+                        line-height: 1.6;
+                    }
+                    pre { 
+                        background: var(--vscode-textCodeBlock-background);
+                        padding: 15px;
+                        border-radius: 4px;
+                        white-space: pre-wrap;
+                        border: 1px solid var(--vscode-panel-border);
+                    }
+                </style>
+            </head>
+            <body><pre>${info}</pre></body>
+            </html>
+        `;
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to get storage info: ${error}`);
     }
 }
 

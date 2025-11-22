@@ -2,9 +2,30 @@
 
 Personal Prompt Manager for locally managing and organizing AI prompts with intelligent tagging, categorization, and comprehensive multi-LLM AI integration.
 
-> **🎉 Version 1.1.2**: Major AI enhancement release! Now features multi-provider AI support (OpenAI, Anthropic, AWS Bedrock, Custom), progressive settings UX, and all critical form issues fixed. Ready for production use with your favorite LLM!
+> **� Version 1.2.3**: Major UX upgrade! Beautiful first-time setup wizard, user-controlled data import, and professional onboarding experience. No more data loss worries - you're in complete control!
 
-## ✨ What's New in 1.1.2
+## ✨ What's New in 1.2.3
+
+### 🎯 **First-Time Setup Wizard** 
+- **Beautiful 3-Step Setup**: Professional onboarding experience for new users
+- **Storage Location Choice**: Pick Global, Workspace, or Custom storage location
+- **Smart Data Import**: Search for existing prompts from other VS Code installations
+- **Flexible Options**: Import from files, existing data, or start completely fresh
+- **One-Time Experience**: Only appears for new installations or empty vaults
+
+### 🛡️ **Data Loss Prevention**
+- **User-Controlled Import**: You decide what data to import and from where
+- **Transparent Storage**: See exactly where your prompts are stored
+- **Professional Workflow**: Similar to VS Code's own setup experience
+- **No Hidden Processes**: Every data operation is visible and user-initiated
+
+### 🎨 **Enhanced First-Time Experience**
+- **VS Code Themed**: Beautiful setup wizard matching your VS Code theme
+- **Progress Indicators**: Clear steps and progress visualization
+- **Smart Defaults**: Recommended settings with clear explanations
+- **Skip Anytime**: Complete control over the setup process
+
+## ✨ Previous Major Features (1.1.2 & Earlier)
 
 ### 🤖 **Multi-Provider AI Integration**
 - **OpenAI (ChatGPT)**: GPT-3.5, GPT-4 support
@@ -122,19 +143,25 @@ After installation, PromptVault appears in your **Explorer panel** (left sidebar
 
 ## 🚀 Quick Start
 
-### 1. **Install & Locate**
-- Install from VS Code Marketplace
-- Find **"PROMPTVAULT"** in Explorer panel (left sidebar)
+### 1. **Install & Setup**
+- Install from VS Code Marketplace or Open VSX Registry
+- **First-time Setup Wizard** will appear automatically
+- Choose your storage location (Global recommended)
+- Optionally import existing prompts or start fresh
 
-### 2. **Save Your First Prompt**
+### 2. **Locate PromptVault**
+- Find **"PROMPTVAULT"** in Explorer panel (left sidebar)
+- If not visible: View → Explorer or `Ctrl+Shift+E` (`Cmd+Shift+E` on Mac)
+
+### 3. **Save Your First Prompt**
 - Select any text → Right-click → "Save to PromptVault"
 - Or use keyboard shortcut: `Ctrl+Shift+S` (`Cmd+Shift+S` on Mac)
 
-### 3. **Manage in Tree View**
+### 4. **Manage in Tree View**
 - Browse prompts by tags in Explorer panel
 - Click prompts to view, right-click to edit/copy/delete
 
-### 4. **Optional: Enable AI** 
+### 5. **Optional: Enable AI** 
 - Settings → PromptVault → Enable AI → Choose provider → Add API key
 
 ## 🔧 Configuration Options
@@ -292,4 +319,5 @@ MIT License - see LICENSE file for details.
 
 - **GitHub Repository**: [pankajads/promptVault](https://github.com/pankajads/promptVault)
 - **VS Code Marketplace**: Search "PromptVault Manager"
+- **Open VSX Registry**: Also available for Kiro, VSCodium, and other VS Code variants
 - **Issues & Support**: [GitHub Issues](https://github.com/pankajads/promptVault/issues)
