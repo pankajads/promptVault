@@ -2,6 +2,38 @@
 
 All notable changes to the "PromptVault" extension will be documented in this file.
 
+## [1.2.3] - 2025-11-22
+
+### 🎯 Simple First-Time Setup
+- **Just-in-Time Configuration**: Storage setup happens only when creating first prompt
+- **Native VS Code Dialogs**: Replaced complex setup wizard with simple, reliable dialogs
+- **Storage Location Choice**: Choose Global, Workspace, or Custom storage with clear recommendations
+- **Quick Import Options**: Easy import from JSON files or existing VS Code installations
+
+### ✨ User Experience Improvements
+- **No Complex UI**: Removed fancy webview wizard that had button issues
+- **Immediate Start**: Extension activates instantly - no setup wizard to complete
+- **Smart Defaults**: Recommends Global storage for most users
+- **Familiar Interface**: Uses standard VS Code dialogs and quick picks
+
+### 🔧 Technical Improvements
+- **Simplified Codebase**: Removed complex setup wizard in favor of simple dialogs
+- **Better Reliability**: Native VS Code UI components work consistently
+- **Faster Activation**: Extension starts immediately without setup checks
+- **Configuration-Driven**: Uses VS Code's native settings system
+
+### 🎨 User Experience
+- **When You Need It**: Setup only appears when creating your first prompt
+- **Clear Choices**: Well-explained options for storage and import decisions
+- **Professional Design**: VS Code-themed setup wizard with progress indicators
+- **Flexible Workflow**: Users can skip setup, import later, or change storage location anytime
+
+### Technical
+- **SetupWizard Class**: New dedicated class for handling first-time setup
+- **HTML Wizard Interface**: Beautiful, responsive setup wizard with modern design
+- **Storage Options**: Global, Workspace, and Custom storage location support
+- **Import Flexibility**: Support for JSON files and existing installation discovery
+
 ## [1.2.2] - 2025-11-22
 
 ### 🐛 Bug Fixes

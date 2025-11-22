@@ -147,19 +147,81 @@ export class PromptManager {
             console.log('💾 STORAGE: Converting to array, length:', promptsArray.length);
             console.log('💾 STORAGE: Writing to file:', this.promptsFile);
             
-            fs.writeFileSync(this.promptsFile, JSON.stringify(promptsArray, null, 2));
-            console.log('✅ STORAGE: Successfully wrote prompts to file');
+            // Create a backup before saving (in case of corruption during write)
+            if (fs.existsSync(this.promptsFile)) {
+                const tempBackup = this.promptsFile + '.backup-temp';
+                fs.copyFileSync(this.promptsFile, tempBackup);
+                
+                try {
+                    // Write to a temporary file first for atomic operation
+                    const tempFile = this.promptsFile + '.tmp';
+                    fs.writeFileSync(tempFile, JSON.stringify(promptsArray, null, 2));
+                    
+                    // Verify the temporary file was written correctly
+                    const writtenData = fs.readFileSync(tempFile, 'utf8');
+                    JSON.parse(writtenData); // Validate JSON
+                    
+                    // Atomic move to replace the original file
+                    fs.renameSync(tempFile, this.promptsFile);
+                    
+                    // Remove temporary backup on successful write
+                    fs.unlinkSync(tempBackup);
+                    
+                    console.log('✅ STORAGE: Successfully wrote prompts to file (atomic)');
+                } catch (writeError) {
+                    // Restore from backup if write failed
+                    if (fs.existsSync(tempBackup)) {
+                        fs.copyFileSync(tempBackup, this.promptsFile);
+                        fs.unlinkSync(tempBackup);
+                    }
+                    throw writeError;
+                }
+            } else {
+                // First time write, no backup needed
+                fs.writeFileSync(this.promptsFile, JSON.stringify(promptsArray, null, 2));
+                console.log('✅ STORAGE: Successfully wrote prompts to file (first time)');
+            }
             
-            // Verify the file was written
+            // Verify the file was written and is valid
             if (fs.existsSync(this.promptsFile)) {
                 const stats = fs.statSync(this.promptsFile);
                 console.log('✅ STORAGE: File exists, size:', stats.size, 'bytes');
+                
+                // Validate the written data
+                const writtenData = fs.readFileSync(this.promptsFile, 'utf8');
+                const parsedData = JSON.parse(writtenData);
+                if (!Array.isArray(parsedData)) {
+                    throw new Error('Saved data is not in expected array format');
+                }
             } else {
                 console.error('❌ STORAGE: File does not exist after write!');
+                throw new Error('File does not exist after write operation');
             }
+            
+            // Success! Data saved safely
+            
         } catch (error) {
             console.error('❌ STORAGE: Failed to save prompts:', error);
             console.error('❌ STORAGE: Error details:', error instanceof Error ? error.stack : error);
+            this.logError('Critical: Failed to save prompts', error);
+            
+            // Show user-friendly error with recovery options
+            vscode.window.showErrorMessage(
+                'PromptVault: Failed to save prompts! Your data may be at risk.',
+                'Create Manual Backup',
+                'Show Diagnostics'
+            ).then(choice => {
+                if (choice === 'Create Manual Backup') {
+                    this.createManualBackup().then(backupPath => {
+                        vscode.window.showInformationMessage(`Backup created at: ${backupPath}`);
+                    }).catch(backupError => {
+                        vscode.window.showErrorMessage(`Backup failed: ${backupError.message}`);
+                    });
+                } else if (choice === 'Show Diagnostics') {
+                    this.outputChannel.show();
+                }
+            });
+            
             throw new Error('Failed to save prompts to storage');
         }
     }
@@ -455,5 +517,49 @@ Respond with JSON format:
             count: this.prompts.size,
             size: stats ? stats.size : 0
         };
+    }
+
+
+
+    /**
+     * Manual backup method that users can call
+     */
+    async createManualBackup(customPath?: string): Promise<string> {
+        try {
+            if (!fs.existsSync(this.promptsFile)) {
+                throw new Error('No prompts data to backup');
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `promptvault-backup-${timestamp}.json`;
+            
+            let backupPath: string;
+            if (customPath) {
+                backupPath = path.join(customPath, fileName);
+            } else {
+                // Default to Desktop for easy access
+                const os = require('os');
+                const desktopPath = path.join(os.homedir(), 'Desktop');
+                backupPath = path.join(desktopPath, fileName);
+            }
+
+            // Create enhanced backup with metadata
+            const backupData = {
+                version: '1.2.2',
+                backupDate: new Date().toISOString(),
+                source: 'manual-backup',
+                extensionVersion: this.context.extension.packageJSON.version,
+                storageLocation: this.storagePath,
+                prompts: Array.from(this.prompts.values())
+            };
+
+            fs.writeFileSync(backupPath, JSON.stringify(backupData, null, 2));
+            this.log('Created manual backup:', backupPath);
+            
+            return backupPath;
+        } catch (error) {
+            this.logError('Failed to create manual backup', error);
+            throw error;
+        }
     }
 }
