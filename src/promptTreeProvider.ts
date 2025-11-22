@@ -94,11 +94,7 @@ export class PromptTreeProvider implements vscode.TreeDataProvider<PromptTreeIte
                 'prompt',
                 tagName, // Pass the parent tag name
                 prompt.id,
-                {
-                    command: 'promptvault.openPrompt',
-                    title: 'Open Prompt',
-                    arguments: [prompt.id]
-                },
+                undefined, // Remove the command property to prevent duplicate calls
                 prompt
             ));
         } catch (error) {
